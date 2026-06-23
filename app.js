@@ -156,7 +156,7 @@ function renderEvents(events) {
             ${makeCountOptions(Number(event.maxFreeTickets || 1))}
           </select>
         </label>
-        <button type="button" data-event-id="${escapeAttr(event.eventId)}">無料チケットを発行</button>
+        <button type="button" data-event-id="${escapeAttr(event.eventId)}">ゲームURLを発行</button>
       `;
 
       actionRoot.querySelector("button").addEventListener("click", () => {
@@ -202,12 +202,13 @@ async function issueFreeTickets(eventId) {
       count,
     });
 
-    showMessage("チケットを発行しました。", "ok");
+    showMessage("ゲームURLを発行しました。", "ok");
 
-    const text = res.tickets.map((t) => t.ticketCode).join("\n");
-    alert("チケットを発行しました。\n\n" + text);
+    const text = res.tickets.map((t) => `${t.ticketCode}\n${t.gameUrl}`).join("\n\n");
+    alert("ゲームURLを発行しました。\n\n" + text);
 
     await loadMyData();
+    switchTab("mypage");
   } catch (err) {
     showMessage(err.message, "error");
   }
@@ -338,7 +339,9 @@ function renderTickets(tickets) {
       ${tickets.map((t) => `
         <div class="mini-item">
           <strong>${escapeHtml(t.eventTitle)}</strong>
-          <p><span class="code">${escapeHtml(t.ticketCode)}</span></p>
+          <p>会員チケット：<span class="code">${escapeHtml(t.ticketCode)}</span></p>
+          <p>ゲームtoken：<span class="code">${escapeHtml(t.gameToken || "")}</span></p>
+          ${t.gameUrl ? `<p><a class="game-link" href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener">ゲームを開く</a></p>` : ""}
           <p class="muted">
             状態：${statusText(t.status)}
             ${t.usedAt ? " / 使用日：" + formatDate(t.usedAt) : ""}
