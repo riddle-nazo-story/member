@@ -249,6 +249,17 @@ textarea {
   display: inline-block;
 }
 
+.game-link {
+  display: inline-flex;
+  margin-top: 8px;
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: var(--main);
+  color: #fff;
+  font-weight: 800;
+}
+
 .qr-actions {
   display: flex;
   flex-wrap: wrap;
