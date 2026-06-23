@@ -83,8 +83,18 @@
             </label>
 
             <label>
-              プレイURL
+              有料/通常プレイURL
               <input id="eventPlayUrl" type="url" placeholder="https://..." />
+            </label>
+
+            <label>
+              ゲーム認証用 gameId
+              <input id="eventGameId" type="text" placeholder="select-answer" />
+            </label>
+
+            <label>
+              ゲーム公開URL 無料token発行用
+              <input id="eventGameBaseUrl" type="url" placeholder="https://riddle-nazo-story.github.io/select-answer/" />
             </label>
 
             <label>
@@ -159,10 +169,10 @@
         <div class="grid two">
           <section class="card">
             <h2>チケット使用済み処理</h2>
-            <p class="muted">参加者が提示したチケットコードを入力して、使用済みにします。</p>
+            <p class="muted">参加者が提示した会員チケットコードを入力して、使用済みにします。</p>
 
             <label>
-              チケットコード
+              会員チケットコード
               <input id="useTicketCode" type="text" placeholder="RS-TK-..." />
             </label>
 
