@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>RIDDLE STORY 会員サイト</title>
+
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://unpkg.com/html5-qrcode" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div>
+      <p class="eyebrow">RIDDLE STORY MEMBERS</p>
+      <h1>会員サイト</h1>
+    </div>
+
+    <button id="logoutBtn" class="ghost hidden">ログアウト</button>
+  </header>
+
+  <main>
+    <section id="authSection" class="grid two">
+      <div class="card">
+        <h2>ログイン</h2>
+
+        <label>
+          メールアドレス
+          <input id="loginEmail" type="email" autocomplete="email" />
+        </label>
+
+        <label>
+          パスワード
+          <input id="loginPassword" type="password" autocomplete="current-password" />
+        </label>
+
+        <button id="loginBtn">ログイン</button>
+      </div>
+
+      <div class="card">
+        <h2>会員登録</h2>
+
+        <label>
+          表示名
+          <input id="registerName" type="text" placeholder="例：かずの" />
+        </label>
+
+        <label>
+          メールアドレス
+          <input id="registerEmail" type="email" autocomplete="email" />
+        </label>
+
+        <label>
+          パスワード
+          <input id="registerPassword" type="password" autocomplete="new-password" />
+        </label>
+
+        <details class="terms-box">
+          <summary>利用規約を確認する</summary>
+          <div>
+            <h3>RIDDLE STORY 会員サイト利用規約</h3>
+            <p>本サイトは、RIDDLE STORYの公演情報、チケット発行、スタンプカード機能を提供する会員向けサービスです。</p>
+            <p>会員は、登録情報を正確に入力し、自身のアカウントを第三者に譲渡・共有してはいけません。</p>
+            <p>プレイURL、チケットコード、スタンプコード、有料認証コードの無断転載・共有は禁止します。</p>
+            <p>不正利用、迷惑行為、ネタバレ投稿などが確認された場合、運営はアカウント停止や利用制限を行うことがあります。</p>
+          </div>
+        </details>
+
+        <details class="terms-box">
+          <summary>プライバシーポリシーを確認する</summary>
+          <div>
+            <h3>プライバシーポリシー</h3>
+            <p>本サイトでは、会員管理のために表示名、メールアドレス、パスワードのハッシュ値、チケット発行履歴、スタンプ取得履歴、参加履歴を保存します。</p>
+            <p>パスワードそのものは保存せず、変換後のハッシュ値として保存します。</p>
+            <p>保存した情報は、会員管理、公演参加管理、不正利用防止、問い合わせ対応のために使用します。</p>
+          </div>
+        </details>
+
+        <label class="check">
+          <input id="termsAgreed" type="checkbox" />
+          利用規約に同意します
+        </label>
+
+        <label class="check">
+          <input id="privacyAgreed" type="checkbox" />
+          プライバシーポリシーに同意します
+        </label>
+
+        <button id="registerBtn">登録する</button>
+      </div>
+    </section>
+
+    <section id="memberSection" class="hidden">
+      <div class="member-head card">
+        <div>
+          <p class="eyebrow">WELCOME</p>
+          <h2 id="userName">---</h2>
+          <p id="userEmail" class="muted">---</p>
+        </div>
+
+        <div class="point-box">
+          <span>スタンプポイント</span>
+          <strong id="totalPoint">0</strong>
+        </div>
+      </div>
+
+      <nav class="tabs">
+        <button class="tab active" data-tab="events">公演一覧</button>
+        <button class="tab" data-tab="stamp">スタンプ</button>
+        <button class="tab" data-tab="mypage">マイページ</button>
+      </nav>
+
+      <section id="tab-events" class="tab-panel">
+        <h2>公演一覧</h2>
+        <div id="eventsList" class="grid"></div>
+      </section>
+
+      <section id="tab-stamp" class="tab-panel hidden">
+        <div class="card">
+          <h2>スタンプを取得</h2>
+          <p class="muted">QRを読み込むか、運営サイトで発行されたスタンプコードを手動入力してください。</p>
+
+          <div class="qr-actions">
+            <button id="startQrBtn" class="ghost">QR読み取り開始</button>
+            <button id="stopQrBtn" class="ghost hidden">QR読み取り停止</button>
+          </div>
+
+          <div id="qrReader" class="qr-reader hidden"></div>
+
+          <label>
+            スタンプコード
+            <input id="stampCodeInput" type="text" placeholder="RS-STAMP-..." />
+          </label>
+
+          <button id="redeemStampBtn">スタンプを取得する</button>
+        </div>
+      </section>
+
+      <section id="tab-mypage" class="tab-panel hidden">
+        <div class="grid two">
+          <div class="card">
+            <h2>発行済みチケット</h2>
+            <div id="myTickets"></div>
+          </div>
+
+          <div class="card">
+            <h2>参加した公演</h2>
+            <div id="myParticipations"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>スタンプ履歴</h2>
+          <div id="myStamps"></div>
+        </div>
+      </section>
+    </section>
+
+    <div id="message" class="message hidden"></div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

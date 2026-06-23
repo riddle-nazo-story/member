@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>RIDDLE STORY 運営サイト</title>
+
+  <link rel="stylesheet" href="admin.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+</head>
+<body>
+  <header class="admin-header">
+    <div>
+      <p class="eyebrow">RIDDLE STORY ADMIN</p>
+      <h1>運営サイト</h1>
+    </div>
+
+    <button id="adminLogoutBtn" class="ghost hidden">ログアウト</button>
+  </header>
+
+  <main>
+    <section id="adminLoginSection" class="card narrow">
+      <h2>管理者ログイン</h2>
+
+      <label>
+        管理者パスワード
+        <input id="adminPassword" type="password" />
+      </label>
+
+      <button id="adminLoginBtn">ログイン</button>
+    </section>
+
+    <section id="adminMainSection" class="hidden">
+      <section class="stats" id="stats"></section>
+
+      <nav class="admin-tabs">
+        <button class="admin-tab active" data-tab="events">公演管理</button>
+        <button class="admin-tab" data-tab="stamps">スタンプ</button>
+        <button class="admin-tab" data-tab="tickets">チケット使用</button>
+        <button class="admin-tab" data-tab="users">会員一覧</button>
+      </nav>
+
+      <section id="admin-tab-events" class="admin-panel">
+        <div class="grid two">
+          <section class="card">
+            <h2 id="eventFormTitle">公演登録</h2>
+
+            <label>
+              公演ID
+              <input id="eventId" type="text" placeholder="select-answer" />
+            </label>
+
+            <label>
+              公演名
+              <input id="eventTitle" type="text" placeholder="セレクトアンサー" />
+            </label>
+
+            <label>
+              種別
+              <select id="eventType">
+                <option value="free">無料</option>
+                <option value="paid">有料</option>
+              </select>
+            </label>
+
+            <label>
+              公開状態
+              <select id="eventStatus">
+                <option value="public">公開</option>
+                <option value="hidden">非公開</option>
+              </select>
+            </label>
+
+            <label>
+              ショップURL 有料用
+              <input id="eventShopUrl" type="url" placeholder="https://..." />
+            </label>
+
+            <label>
+              有料認証コード
+              <input id="eventPaidCode" type="text" placeholder="購入後に表示するコード" />
+            </label>
+
+            <label>
+              プレイURL
+              <input id="eventPlayUrl" type="url" placeholder="https://..." />
+            </label>
+
+            <label>
+              無料チケット最大枚数
+              <input id="eventMaxFreeTickets" type="number" min="1" value="1" />
+            </label>
+
+            <label>
+              説明
+              <textarea id="eventDescription" placeholder="公演説明"></textarea>
+            </label>
+
+            <div class="button-row">
+              <button id="saveEventBtn">公演を登録</button>
+              <button id="cancelEditEventBtn" class="ghost hidden">編集をやめる</button>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>登録済み公演</h2>
+            <div id="eventsTable"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="admin-tab-stamps" class="admin-panel hidden">
+        <div class="grid two">
+          <section class="card">
+            <h2>スタンプコード生成</h2>
+
+            <label>
+              対象公演
+              <select id="stampEventId"></select>
+            </label>
+
+            <label>
+              付与ポイント
+              <input id="stampPoint" type="number" min="1" value="1" />
+            </label>
+
+            <label>
+              使用制限
+              <select id="stampLimitType">
+                <option value="once_per_account">1アカウント1回のみ</option>
+                <option value="once_total">誰か1人が使ったら無効</option>
+                <option value="multi">指定回数まで使用可能</option>
+              </select>
+            </label>
+
+            <label>
+              最大使用回数
+              <input id="stampMaxUses" type="number" min="1" value="100" />
+            </label>
+
+            <button id="generateStampBtn">スタンプコードを生成</button>
+
+            <div id="generatedStamp" class="generated hidden">
+              <h3>生成されたコード</h3>
+              <p id="generatedStampCode" class="code"></p>
+              <div id="qrBox"></div>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>スタンプコード一覧</h2>
+            <div id="stampTable"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="admin-tab-tickets" class="admin-panel hidden">
+        <div class="grid two">
+          <section class="card">
+            <h2>チケット使用済み処理</h2>
+            <p class="muted">参加者が提示したチケットコードを入力して、使用済みにします。</p>
+
+            <label>
+              チケットコード
+              <input id="useTicketCode" type="text" placeholder="RS-TK-..." />
+            </label>
+
+            <button id="useTicketBtn">使用済みにする</button>
+
+            <div id="usedTicketResult" class="result-box hidden"></div>
+          </section>
+
+          <section class="card">
+            <h2>チケット一覧</h2>
+            <div id="ticketsTable"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="admin-tab-users" class="admin-panel hidden">
+        <section class="card">
+          <h2>会員一覧</h2>
+          <p class="muted">パスワード情報は表示しません。表示名、メールアドレス、参加数などだけ表示します。</p>
+          <div id="usersTable"></div>
+        </section>
+      </section>
+    </section>
+
+    <div id="adminMessage" class="message hidden"></div>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>
