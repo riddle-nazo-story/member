@@ -84,7 +84,8 @@ async function loadDashboard() {
   $("stats").innerHTML = `
     <div class="stat"><span>会員</span><strong>${data.users}</strong></div>
     <div class="stat"><span>公演</span><strong>${data.events}</strong></div>
-    <div class="stat"><span>チケット</span><strong>${data.tickets}</strong></div>
+    <div class="stat"><span>会員チケット</span><strong>${data.tickets}</strong></div>
+    <div class="stat"><span>ゲームtoken</span><strong>${data.gameTickets}</strong></div>
     <div class="stat"><span>有料認証</span><strong>${data.paidAccess}</strong></div>
     <div class="stat"><span>スタンプコード</span><strong>${data.stampCodes}</strong></div>
     <div class="stat"><span>スタンプ取得</span><strong>${data.stampLogs}</strong></div>
@@ -131,6 +132,8 @@ function renderEventsTable(events) {
             <th>公演名</th>
             <th>種別</th>
             <th>状態</th>
+            <th>gameId</th>
+            <th>ゲーム公開URL</th>
             <th>ショップ</th>
             <th>有料コード</th>
             <th>プレイURL</th>
@@ -145,6 +148,8 @@ function renderEventsTable(events) {
               <td>${escapeHtml(e.title)}</td>
               <td>${escapeHtml(e.type)}</td>
               <td>${escapeHtml(e.status)}</td>
+              <td>${escapeHtml(e.gameId || "")}</td>
+              <td>${e.gameBaseUrl ? `<a href="${escapeAttr(e.gameBaseUrl)}" target="_blank" rel="noopener">開く</a>` : ""}</td>
               <td>${e.shopUrl ? `<a href="${escapeAttr(e.shopUrl)}" target="_blank" rel="noopener">開く</a>` : ""}</td>
               <td><span class="code">${escapeHtml(e.paidCode || "")}</span></td>
               <td>${e.playUrl ? `<a href="${escapeAttr(e.playUrl)}" target="_blank" rel="noopener">開く</a>` : ""}</td>
@@ -179,6 +184,8 @@ function startEventEdit(eventId) {
   $("eventShopUrl").value = event.shopUrl || "";
   $("eventPaidCode").value = event.paidCode || "";
   $("eventPlayUrl").value = event.playUrl || "";
+  $("eventGameId").value = event.gameId || "";
+  $("eventGameBaseUrl").value = event.gameBaseUrl || "";
   $("eventMaxFreeTickets").value = event.maxFreeTickets || "1";
   $("eventDescription").value = event.description || "";
 
@@ -205,6 +212,8 @@ async function saveEvent() {
       shopUrl: $("eventShopUrl").value,
       paidCode: $("eventPaidCode").value,
       playUrl: $("eventPlayUrl").value,
+      gameId: $("eventGameId").value,
+      gameBaseUrl: $("eventGameBaseUrl").value,
       maxFreeTickets: $("eventMaxFreeTickets").value,
       description: $("eventDescription").value,
     };
@@ -236,6 +245,8 @@ function clearEventForm() {
   $("eventShopUrl").value = "";
   $("eventPaidCode").value = "";
   $("eventPlayUrl").value = "";
+  $("eventGameId").value = "";
+  $("eventGameBaseUrl").value = "";
   $("eventMaxFreeTickets").value = "1";
   $("eventDescription").value = "";
 
@@ -338,7 +349,9 @@ async function useTicket() {
       <h3>使用済みにしました</h3>
       <p>公演：${escapeHtml(res.ticket.eventTitle)}</p>
       <p>会員：${escapeHtml(res.ticket.userName)} / ${escapeHtml(res.ticket.userEmail)}</p>
-      <p>コード：<span class="code">${escapeHtml(res.ticket.ticketCode)}</span></p>
+      <p>会員チケット：<span class="code">${escapeHtml(res.ticket.ticketCode)}</span></p>
+      <p>ゲームtoken：<span class="code">${escapeHtml(res.ticket.gameToken || "")}</span></p>
+      ${res.ticket.gameUrl ? `<p><a href="${escapeAttr(res.ticket.gameUrl)}" target="_blank" rel="noopener">ゲームURLを開く</a></p>` : ""}
       <p>使用日時：${formatDate(res.ticket.usedAt)}</p>
     `;
 
@@ -370,10 +383,12 @@ function renderTicketsTable(tickets) {
       <table>
         <thead>
           <tr>
-            <th>コード</th>
+            <th>会員チケット</th>
+            <th>ゲームtoken</th>
             <th>状態</th>
             <th>公演</th>
             <th>会員</th>
+            <th>ゲームURL</th>
             <th>発行日</th>
             <th>使用日</th>
           </tr>
@@ -382,9 +397,11 @@ function renderTicketsTable(tickets) {
           ${tickets.map((t) => `
             <tr>
               <td><span class="code">${escapeHtml(t.ticketCode)}</span></td>
+              <td><span class="code">${escapeHtml(t.gameToken || "")}</span></td>
               <td>${statusText(t.status)}</td>
               <td>${escapeHtml(t.eventTitle)}</td>
               <td>${escapeHtml(t.userName)}<br><span class="muted">${escapeHtml(t.userEmail)}</span></td>
+              <td>${t.gameUrl ? `<a href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener">開く</a>` : ""}</td>
               <td>${formatDate(t.createdAt)}</td>
               <td>${formatDate(t.usedAt)}</td>
             </tr>
