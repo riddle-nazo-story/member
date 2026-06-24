@@ -16,10 +16,24 @@
       <h1>会員サイト</h1>
     </div>
 
-    <button id="logoutBtn" class="ghost hidden">ログアウト</button>
+    <div class="header-actions">
+      <a href="ticket.html"><button class="ghost" type="button">チケット購入/発行</button></a>
+      <button id="logoutBtn" class="ghost hidden">ログアウト</button>
+    </div>
   </header>
 
   <main>
+    <section class="hero">
+      <p class="eyebrow">RIDDLE STORY MEMBERS</p>
+      <h2>RIDDLE STORY</h2>
+      <p>人々の願いを叶えろ—</p>
+      <nav class="site-nav">
+        <a href="ticket.html">TICKET</a>
+        <a href="#tab-stamp">STAMP</a>
+        <a href="#tab-mypage">MYPAGE</a>
+      </nav>
+    </section>
+
     <section id="authSection" class="grid two">
       <div class="card">
         <h2>ログイン</h2>
@@ -105,17 +119,11 @@
       </div>
 
       <nav class="tabs">
-        <button class="tab active" data-tab="events">公演一覧</button>
-        <button class="tab" data-tab="stamp">スタンプ</button>
+        <button class="tab active" data-tab="stamp">スタンプ</button>
         <button class="tab" data-tab="mypage">マイページ</button>
       </nav>
 
-      <section id="tab-events" class="tab-panel">
-        <h2>公演一覧</h2>
-        <div id="eventsList" class="grid"></div>
-      </section>
-
-      <section id="tab-stamp" class="tab-panel hidden">
+      <section id="tab-stamp" class="tab-panel">
         <div class="card">
           <h2>スタンプを取得</h2>
           <p class="muted">QRを読み込むか、運営サイトで発行されたスタンプコードを手動入力してください。</p>
