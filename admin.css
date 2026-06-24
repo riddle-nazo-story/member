@@ -164,7 +164,7 @@ textarea {
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
   gap: 10px;
   margin-bottom: 18px;
 }
@@ -297,9 +297,40 @@ th {
 }
 
 @media (max-width: 900px) {
-  .grid.two,
-  .stats {
+  .grid.two {
     grid-template-columns: 1fr;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .stat {
+    padding: 10px;
+    min-width: 0;
+  }
+
+  .stat span {
+    font-size: 10px;
+    letter-spacing: .04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .stat strong {
+    font-size: 24px;
+  }
+
+  .admin-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-tab {
+    width: 100%;
+    padding-inline: 10px;
   }
 
   .admin-header {
