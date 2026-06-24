@@ -158,7 +158,7 @@ async function redeemStamp() {
     });
 
     $("stampCodeInput").value = "";
-    showMessage(`${res.event.title} のスタンプを取得しました。 +${res.point}pt`, "ok");
+    showMessage(`${res.stampName || res.event.title} のスタンプを取得しました。 +${res.point}pt`, "ok");
     await loadMyData();
   } catch (err) {
     showMessage(err.message, "error");
@@ -191,14 +191,21 @@ function renderTickets(tickets) {
         <div class="mini-item">
           <strong>${escapeHtml(t.eventTitle)}</strong>
           <p>会員チケット：<span class="code">${escapeHtml(t.ticketCode)}</span></p>
-          <p>ゲームtoken：<span class="code">${escapeHtml(t.gameToken || "")}</span></p>
-          ${t.gameUrl ? `<p><a class="game-link" href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener">ゲームを開く</a></p>` : ""}
-          <p class="muted">状態：${statusText(t.status)}${t.usedAt ? " / 使用日：" + formatDate(t.usedAt) : ""}</p>
+          ${t.gameUrl ? `<p><span class="code">${escapeHtml(t.gameUrl)}</span></p><p><a class="game-link" href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener">ゲームを開く</a> <button type="button" class="copy-url-btn ghost" data-copy-url="${escapeAttr(t.gameUrl)}">URLコピー</button></p>` : ""}
+          <p class="muted">
+            会員状態：${statusText(t.status)} / ゲーム状態：${gameStatusText(t.gameStatus)}
+            ${t.gameExpiresAt ? " / URL期限：" + formatDate(t.gameExpiresAt) : ""}
+            ${t.usedAt ? " / 使用日：" + formatDate(t.usedAt) : ""}
+          </p>
           <p class="muted">発行日：${formatDate(t.createdAt)}</p>
         </div>
       `).join("")}
     </div>
   `;
+
+  root.querySelectorAll(".copy-url-btn").forEach((btn) => {
+    btn.addEventListener("click", () => copyUrl(btn.dataset.copyUrl));
+  });
 }
 
 function renderParticipations(list) {
@@ -268,6 +275,28 @@ function showMember() {
 }
 
 function getToken() { return localStorage.getItem(TOKEN_KEY); }
+
+function gameStatusText(status) {
+  const map = {
+    unused: "未アクセス",
+    active: "使用中",
+    used: "使用済み",
+    expired: "期限切れ・使用不可",
+    cleared: "クリア済み",
+    blocked: "無効",
+  };
+
+  return map[status] || status || "未アクセス";
+}
+
+async function copyUrl(url) {
+  try {
+    await navigator.clipboard.writeText(url);
+    showMessage("ゲームURLをコピーしました。", "ok");
+  } catch (err) {
+    window.prompt("このURLをコピーしてください", url);
+  }
+}
 
 function statusText(status) {
   const map = { issued: "未使用", used: "使用済み", cancelled: "キャンセル済み" };
