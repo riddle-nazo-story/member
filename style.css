@@ -922,3 +922,20 @@ svg {
     padding: 5px 7px !important;
   }
 }
+
+/* =========================
+   公演一覧の画像を非表示
+========================= */
+
+#eventsList .event-thumb {
+  display: none !important;
+}
+
+#eventsList .event-card {
+  display: block !important;
+  grid-template-columns: 1fr !important;
+}
+
+#eventsList .event-info {
+  width: 100% !important;
+}
