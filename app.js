@@ -2,11 +2,9 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbwZJGvGsEXSeMRPNU_jzqTvYyA5yhNbIAR-ZprH0O4Wbl6CeJX6YzWTpXS5_WUPVA45dQ/exec";
 
 const TOKEN_KEY = "rs_member_token";
-
 const $ = (id) => document.getElementById(id);
 
 let currentUser = null;
-let eventsCache = [];
 let qrScanner = null;
 let qrBusy = false;
 
@@ -22,7 +20,7 @@ async function init() {
       const res = await api("me", { token });
       currentUser = res.user;
       showMember();
-      await refreshAll();
+      await loadMyData();
     } catch (err) {
       localStorage.removeItem(TOKEN_KEY);
       showAuth();
@@ -41,27 +39,19 @@ function bindEvents() {
   $("stopQrBtn").addEventListener("click", stopQr);
 
   document.querySelectorAll(".tab").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      switchTab(btn.dataset.tab);
-    });
+    btn.addEventListener("click", () => switchTab(btn.dataset.tab));
   });
 }
 
 async function api(action, data = {}) {
   const res = await fetch(API_URL, {
     method: "POST",
-    body: JSON.stringify({
-      action,
-      data,
-    }),
+    body: JSON.stringify({ action, data }),
   });
 
   const json = await res.json();
 
-  if (!json.ok) {
-    throw new Error(json.error || "通信エラーが発生しました。");
-  }
-
+  if (!json.ok) throw new Error(json.error || "通信エラーが発生しました。");
   return json.result;
 }
 
@@ -77,7 +67,7 @@ async function login() {
 
     showMessage("ログインしました。", "ok");
     showMember();
-    await refreshAll();
+    await loadMyData();
   } catch (err) {
     showMessage(err.message, "error");
   }
@@ -98,7 +88,7 @@ async function register() {
 
     showMessage("会員登録が完了しました。", "ok");
     showMember();
-    await refreshAll();
+    await loadMyData();
   } catch (err) {
     showMessage(err.message, "error");
   }
@@ -108,132 +98,7 @@ function logout() {
   stopQr();
   localStorage.removeItem(TOKEN_KEY);
   currentUser = null;
-  eventsCache = [];
   showAuth();
-}
-
-async function refreshAll() {
-  await loadEvents();
-  await loadMyData();
-}
-
-async function loadEvents() {
-  const events = await api("listEvents");
-  eventsCache = events;
-  renderEvents(events);
-}
-
-function renderEvents(events) {
-  const root = $("eventsList");
-  root.innerHTML = "";
-
-  if (!events.length) {
-    root.innerHTML = `<p class="muted">現在公開中の公演はありません。</p>`;
-    return;
-  }
-
-  events.forEach((event) => {
-    const div = document.createElement("div");
-    div.className = "card event-card";
-
-    const badgeClass = event.type === "free" ? "free" : "paid";
-    const badgeText = event.type === "free" ? "無料" : "有料";
-
-    div.innerHTML = `
-      <span class="badge ${badgeClass}">${badgeText}</span>
-      <h3>${escapeHtml(event.title)}</h3>
-      <p class="muted">${escapeHtml(event.description || "")}</p>
-      <div class="event-action"></div>
-    `;
-
-    const actionRoot = div.querySelector(".event-action");
-
-    if (event.type === "free") {
-      actionRoot.innerHTML = `
-        <label>
-          発行枚数
-          <select id="count-${event.eventId}">
-            ${makeCountOptions(Number(event.maxFreeTickets || 1))}
-          </select>
-        </label>
-        <button type="button" data-event-id="${escapeAttr(event.eventId)}">ゲームURLを発行</button>
-      `;
-
-      actionRoot.querySelector("button").addEventListener("click", () => {
-        issueFreeTickets(event.eventId);
-      });
-    } else {
-      actionRoot.innerHTML = `
-        ${event.shopUrl ? `<a href="${escapeAttr(event.shopUrl)}" target="_blank" rel="noopener"><button type="button" class="ghost">ショップで購入</button></a>` : ""}
-        <label>
-          購入後コード
-          <input id="paid-code-${event.eventId}" type="text" placeholder="コードを入力" />
-        </label>
-        <button type="button">コード認証</button>
-      `;
-
-      actionRoot.querySelector("button:last-child").addEventListener("click", () => {
-        verifyPaidCode(event.eventId);
-      });
-    }
-
-    root.appendChild(div);
-  });
-}
-
-function makeCountOptions(max) {
-  const safeMax = Math.max(1, Math.min(10, max));
-  let html = "";
-
-  for (let i = 1; i <= safeMax; i++) {
-    html += `<option value="${i}">${i}枚</option>`;
-  }
-
-  return html;
-}
-
-async function issueFreeTickets(eventId) {
-  try {
-    const count = Number($(`count-${eventId}`).value || 1);
-
-    const res = await api("issueFreeTickets", {
-      token: getToken(),
-      eventId,
-      count,
-    });
-
-    showMessage("ゲームURLを発行しました。", "ok");
-
-    const text = res.tickets.map((t) => `${t.ticketCode}\n${t.gameUrl}`).join("\n\n");
-    alert("ゲームURLを発行しました。\n\n" + text);
-
-    await loadMyData();
-    switchTab("mypage");
-  } catch (err) {
-    showMessage(err.message, "error");
-  }
-}
-
-async function verifyPaidCode(eventId) {
-  try {
-    const code = $(`paid-code-${eventId}`).value;
-
-    const res = await api("verifyPaidCode", {
-      token: getToken(),
-      eventId,
-      code,
-    });
-
-    showMessage("認証に成功しました。", "ok");
-
-    if (res.playUrl) {
-      window.open(res.playUrl, "_blank", "noopener");
-    }
-
-    await loadMyData();
-  } catch (err) {
-    showMessage(err.message, "error");
-  }
 }
 
 async function startQr() {
@@ -251,22 +116,14 @@ async function startQr() {
 
     await qrScanner.start(
       { facingMode: "environment" },
-      {
-        fps: 10,
-        qrbox: { width: 240, height: 240 },
-      },
+      { fps: 10, qrbox: { width: 240, height: 240 } },
       async (decodedText) => {
         if (qrBusy) return;
-
         qrBusy = true;
         $("stampCodeInput").value = decodedText;
-
         await stopQr();
         await redeemStamp();
-
-        setTimeout(() => {
-          qrBusy = false;
-        }, 1200);
+        setTimeout(() => { qrBusy = false; }, 1200);
       },
       () => {}
     );
@@ -283,10 +140,8 @@ async function stopQr() {
       await qrScanner.clear();
     }
   } catch (err) {
-    // 無視
   } finally {
     qrScanner = null;
-
     if ($("qrReader")) $("qrReader").classList.add("hidden");
     if ($("startQrBtn")) $("startQrBtn").classList.remove("hidden");
     if ($("stopQrBtn")) $("stopQrBtn").classList.add("hidden");
@@ -303,9 +158,7 @@ async function redeemStamp() {
     });
 
     $("stampCodeInput").value = "";
-
     showMessage(`${res.event.title} のスタンプを取得しました。 +${res.point}pt`, "ok");
-
     await loadMyData();
   } catch (err) {
     showMessage(err.message, "error");
@@ -313,9 +166,7 @@ async function redeemStamp() {
 }
 
 async function loadMyData() {
-  const data = await api("getMyData", {
-    token: getToken(),
-  });
+  const data = await api("getMyData", { token: getToken() });
 
   $("userName").textContent = data.user.name;
   $("userEmail").textContent = data.user.email;
@@ -330,7 +181,7 @@ function renderTickets(tickets) {
   const root = $("myTickets");
 
   if (!tickets.length) {
-    root.innerHTML = `<p class="muted">まだチケットはありません。</p>`;
+    root.innerHTML = `<p class="muted">まだチケットはありません。チケット購入サイトから発行してください。</p>`;
     return;
   }
 
@@ -342,10 +193,7 @@ function renderTickets(tickets) {
           <p>会員チケット：<span class="code">${escapeHtml(t.ticketCode)}</span></p>
           <p>ゲームtoken：<span class="code">${escapeHtml(t.gameToken || "")}</span></p>
           ${t.gameUrl ? `<p><a class="game-link" href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener">ゲームを開く</a></p>` : ""}
-          <p class="muted">
-            状態：${statusText(t.status)}
-            ${t.usedAt ? " / 使用日：" + formatDate(t.usedAt) : ""}
-          </p>
+          <p class="muted">状態：${statusText(t.status)}${t.usedAt ? " / 使用日：" + formatDate(t.usedAt) : ""}</p>
           <p class="muted">発行日：${formatDate(t.createdAt)}</p>
         </div>
       `).join("")}
@@ -404,10 +252,7 @@ function switchTab(tab) {
   });
 
   $(`tab-${tab}`).classList.remove("hidden");
-
-  if (tab !== "stamp") {
-    stopQr();
-  }
+  if (tab !== "stamp") stopQr();
 }
 
 function showAuth() {
@@ -422,28 +267,15 @@ function showMember() {
   $("logoutBtn").classList.remove("hidden");
 }
 
-function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
-}
+function getToken() { return localStorage.getItem(TOKEN_KEY); }
 
 function statusText(status) {
-  const map = {
-    issued: "未使用",
-    used: "使用済み",
-    cancelled: "キャンセル済み",
-  };
-
+  const map = { issued: "未使用", used: "使用済み", cancelled: "キャンセル済み" };
   return map[status] || status;
 }
 
 function sourceText(source) {
-  const map = {
-    ticket: "チケット使用",
-    paid: "有料認証",
-    stamp: "スタンプ",
-    manual: "手動登録",
-  };
-
+  const map = { ticket: "チケット使用", paid: "有料認証", stamp: "スタンプ", manual: "手動登録" };
   return map[source] || source;
 }
 
@@ -452,21 +284,14 @@ function showMessage(text, type = "ok") {
   el.textContent = text;
   el.className = `message ${type}`;
   el.classList.remove("hidden");
-
-  setTimeout(() => {
-    el.classList.add("hidden");
-  }, 4500);
+  setTimeout(() => el.classList.add("hidden"), 4500);
 }
 
 function formatDate(value) {
   if (!value) return "";
   const d = new Date(value);
-
   if (Number.isNaN(d.getTime())) return value;
-
-  return d.toLocaleString("ja-JP", {
-    timeZone: "Asia/Tokyo",
-  });
+  return d.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
 }
 
 function escapeHtml(str) {
@@ -478,6 +303,4 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
-function escapeAttr(str) {
-  return escapeHtml(str);
-}
+function escapeAttr(str) { return escapeHtml(str); }
