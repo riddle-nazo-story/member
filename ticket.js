@@ -53,12 +53,20 @@ function renderEvents(events) {
   }
 
   root.innerHTML = events.map((event) => `
-    <article class="card event-card">
-      ${event.mainVisualUrl ? `<img class="event-thumb" src="${escapeAttr(event.mainVisualUrl)}" alt="${escapeAttr(event.title)}" />` : ""}
-      <span class="badge ${event.type === "free" ? "free" : "paid"}">${event.type === "free" ? "無料" : "有料"}</span>
-      <h3>${escapeHtml(event.title)}</h3>
-      <p class="muted">${escapeHtml(event.description || "")}</p>
-      <a class="game-link" href="ticket-event.html?eventId=${encodeURIComponent(event.eventId)}">チケットページへ</a>
+    <article class="card event-card no-image">
+      <div class="event-info">
+        <span class="badge ${event.type === "free" ? "free" : "paid"}">
+          ${event.type === "free" ? "無料" : "有料"}
+        </span>
+
+        <h3>${escapeHtml(event.title)}</h3>
+
+        <p class="muted">${escapeHtml(event.description || "")}</p>
+
+        <a class="game-link" href="ticket-event.html?eventId=${encodeURIComponent(event.eventId)}">
+          チケットページへ
+        </a>
+      </div>
     </article>
   `).join("");
 }
