@@ -188,12 +188,16 @@ function renderResult(tickets) {
       ${tickets.map((t) => `
         <div class="mini-item">
           <p>会員チケット：<span class="code">${escapeHtml(t.ticketCode)}</span></p>
-          <p>ゲームtoken：<span class="code">${escapeHtml(t.gameToken || "")}</span></p>
-          ${t.gameUrl ? `<p><a class="game-link" href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener">ゲームを開く</a></p>` : ""}
+          ${t.gameUrl ? `<p><span class="code">${escapeHtml(t.gameUrl)}</span></p><p><a class="game-link" href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener">ゲームを開く</a> <button type="button" class="copy-url-btn ghost" data-copy-url="${escapeAttr(t.gameUrl)}">URLコピー</button></p>` : ""}
         </div>
       `).join("")}
     </div>
   `;
+
+  $("resultList").querySelectorAll(".copy-url-btn").forEach((btn) => {
+    btn.addEventListener("click", () => copyUrl(btn.dataset.copyUrl));
+  });
+
   $("resultArea").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -210,6 +214,15 @@ function logout() {
 
 function getToken() {
   return localStorage.getItem(TOKEN_KEY);
+}
+
+async function copyUrl(url) {
+  try {
+    await navigator.clipboard.writeText(url);
+    showMessage("ゲームURLをコピーしました。", "ok");
+  } catch (err) {
+    window.prompt("このURLをコピーしてください", url);
+  }
 }
 
 function formatMultiline(text) {
