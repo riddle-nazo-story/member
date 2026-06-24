@@ -98,6 +98,21 @@
             </label>
 
             <label>
+              メインビジュアル画像URL
+              <input id="eventMainVisualUrl" type="url" placeholder="assets/mainvisual.jpg または https://..." />
+            </label>
+
+            <label>
+              ストーリー
+              <textarea id="eventStory" placeholder="この公演のストーリー"></textarea>
+            </label>
+
+            <label>
+              注意事項
+              <textarea id="eventNotes" placeholder="1行ずつ注意事項を書くと表示しやすいです"></textarea>
+            </label>
+
+            <label>
               無料チケット最大枚数
               <input id="eventMaxFreeTickets" type="number" min="1" value="1" />
             </label>
@@ -169,11 +184,11 @@
         <div class="grid two">
           <section class="card">
             <h2>チケット使用済み処理</h2>
-            <p class="muted">参加者が提示した会員チケットコードを入力して、使用済みにします。</p>
+            <p class="muted">参加者が提示した RS-TKコード、rs_から始まるゲームtoken、またはtoken付きURLを入力して、使用済みにします。</p>
 
             <label>
-              会員チケットコード
-              <input id="useTicketCode" type="text" placeholder="RS-TK-..." />
+              チケットコード / game token / URL
+              <input id="useTicketCode" type="text" placeholder="RS-TK-... / rs_... / https://...?token=..." />
             </label>
 
             <button id="useTicketBtn">使用済みにする</button>
