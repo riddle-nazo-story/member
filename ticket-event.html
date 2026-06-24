@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>RIDDLE STORY チケットページ</title>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div>
+      <p class="eyebrow">RIDDLE STORY TICKET</p>
+      <h1>チケットページ</h1>
+    </div>
+
+    <div class="header-actions">
+      <a href="ticket.html"><button class="ghost" type="button">公演一覧へ</button></a>
+      <a href="index.html"><button class="ghost" type="button">会員サイトへ</button></a>
+      <button id="logoutBtn" class="ghost hidden">ログアウト</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="authNotice" class="card hidden">
+      <h2>ログインが必要です</h2>
+      <p class="muted">チケットの購入・発行にはログインが必要です。</p>
+      <a href="index.html" class="game-link">会員サイトでログインする</a>
+    </section>
+
+    <section id="notFound" class="card hidden">
+      <h2>公演が見つかりません</h2>
+      <p class="muted">URLの eventId を確認してください。</p>
+      <a href="ticket.html" class="game-link">公演一覧へ戻る</a>
+    </section>
+
+    <section id="eventSection" class="hidden">
+      <article class="ticket-hero card">
+        <img id="mainVisual" class="main-visual hidden" alt="メインビジュアル" />
+        <div class="ticket-title-area">
+          <p class="eyebrow" id="eventTypeText">TICKET</p>
+          <h2 id="eventTitle">---</h2>
+          <p id="eventDescription" class="muted"></p>
+        </div>
+      </article>
+
+      <div class="grid two">
+        <section class="card">
+          <h2>ストーリー</h2>
+          <div id="eventStory" class="text-block muted"></div>
+        </section>
+
+        <section class="card">
+          <h2>注意事項</h2>
+          <div id="eventNotes" class="text-block muted"></div>
+        </section>
+      </div>
+
+      <section class="card" style="margin-top:18px;">
+        <h2>チケット</h2>
+
+        <div id="freeArea" class="hidden">
+          <p class="muted">発行枚数を選択し、確認画面へ進んでください。</p>
+          <label>
+            チケット枚数
+            <select id="ticketCount"></select>
+          </label>
+          <button id="showConfirmBtn" type="button">確認画面へ</button>
+        </div>
+
+        <div id="paidArea" class="hidden">
+          <p class="muted">ショップで購入後、表示されたコードを入力してください。</p>
+          <a id="shopLink" class="game-link" href="#" target="_blank" rel="noopener">ショップで購入する</a>
+          <label>
+            購入後コード
+            <input id="paidCode" type="text" placeholder="購入後に表示されたコード" />
+          </label>
+          <button id="showPaidConfirmBtn" type="button">確認画面へ</button>
+        </div>
+      </section>
+
+      <section id="confirmArea" class="card confirm-card hidden">
+        <h2>確認画面</h2>
+        <div id="confirmText" class="text-block"></div>
+        <div class="button-row">
+          <button id="confirmIssueBtn" type="button">この内容で確定する</button>
+          <button id="backBtn" class="ghost" type="button">戻る</button>
+        </div>
+      </section>
+
+      <section id="resultArea" class="card hidden" style="margin-top:18px;">
+        <h2>発行結果</h2>
+        <div id="resultList"></div>
+      </section>
+    </section>
+
+    <div id="message" class="message hidden"></div>
+  </main>
+
+  <script src="ticket-event.js"></script>
+</body>
+</html>

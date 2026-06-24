@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>RIDDLE STORY チケットサイト</title>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div>
+      <p class="eyebrow">RIDDLE STORY TICKET</p>
+      <h1>チケットサイト</h1>
+    </div>
+
+    <div class="header-actions">
+      <a href="index.html"><button class="ghost" type="button">会員サイトへ</button></a>
+      <button id="logoutBtn" class="ghost hidden">ログアウト</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p class="eyebrow">RIDDLE STORY TICKET</p>
+      <h2>TICKET</h2>
+      <p>公演ごとのチケットページから、チケットの発行・購入手続きへ進めます。購入・発行にはログインが必要です。</p>
+      <nav class="site-nav">
+        <a href="index.html">MEMBER</a>
+        <a href="#ticketSection">EVENT</a>
+        <a href="admin.html">ADMIN</a>
+      </nav>
+    </section>
+
+    <section id="authNotice" class="card hidden">
+      <h2>ログインが必要です</h2>
+      <p class="muted">チケットサイトを利用するには、会員サイトでログインしてください。</p>
+      <a href="index.html" class="game-link">会員サイトでログインする</a>
+    </section>
+
+    <section id="ticketSection" class="hidden">
+      <div class="member-head card">
+        <div>
+          <p class="eyebrow">LOGIN</p>
+          <h2 id="userName">---</h2>
+          <p id="userEmail" class="muted">---</p>
+        </div>
+      </div>
+
+      <h2>公開中の公演</h2>
+      <div id="eventsList" class="grid"></div>
+    </section>
+
+    <div id="message" class="message hidden"></div>
+  </main>
+
+  <script src="ticket.js"></script>
+</body>
+</html>
