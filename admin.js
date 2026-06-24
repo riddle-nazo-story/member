@@ -128,6 +128,7 @@ function renderEventsTable(events) {
         <thead>
           <tr>
             <th>操作</th>
+            <th>チケットページ</th>
             <th>公演ID</th>
             <th>公演名</th>
             <th>種別</th>
@@ -144,6 +145,7 @@ function renderEventsTable(events) {
           ${events.map((e) => `
             <tr>
               <td><button class="small-btn" type="button" data-edit-event="${escapeAttr(e.eventId)}">編集</button></td>
+              <td><a href="ticket-event.html?eventId=${encodeURIComponent(e.eventId)}" target="_blank" rel="noopener">開く</a></td>
               <td><span class="code">${escapeHtml(e.eventId)}</span></td>
               <td>${escapeHtml(e.title)}</td>
               <td>${escapeHtml(e.type)}</td>
@@ -186,6 +188,9 @@ function startEventEdit(eventId) {
   $("eventPlayUrl").value = event.playUrl || "";
   $("eventGameId").value = event.gameId || "";
   $("eventGameBaseUrl").value = event.gameBaseUrl || "";
+  $("eventMainVisualUrl").value = event.mainVisualUrl || "";
+  $("eventStory").value = event.story || "";
+  $("eventNotes").value = event.notes || "";
   $("eventMaxFreeTickets").value = event.maxFreeTickets || "1";
   $("eventDescription").value = event.description || "";
 
@@ -214,6 +219,9 @@ async function saveEvent() {
       playUrl: $("eventPlayUrl").value,
       gameId: $("eventGameId").value,
       gameBaseUrl: $("eventGameBaseUrl").value,
+      mainVisualUrl: $("eventMainVisualUrl").value,
+      story: $("eventStory").value,
+      notes: $("eventNotes").value,
       maxFreeTickets: $("eventMaxFreeTickets").value,
       description: $("eventDescription").value,
     };
@@ -247,6 +255,9 @@ function clearEventForm() {
   $("eventPlayUrl").value = "";
   $("eventGameId").value = "";
   $("eventGameBaseUrl").value = "";
+  $("eventMainVisualUrl").value = "";
+  $("eventStory").value = "";
+  $("eventNotes").value = "";
   $("eventMaxFreeTickets").value = "1";
   $("eventDescription").value = "";
 
@@ -346,7 +357,7 @@ async function useTicket() {
 
     $("usedTicketResult").classList.remove("hidden");
     $("usedTicketResult").innerHTML = `
-      <h3>使用済みにしました</h3>
+      <h3>${res.alreadyUsed ? "すでに使用済みです" : "使用済みにしました"}</h3>
       <p>公演：${escapeHtml(res.ticket.eventTitle)}</p>
       <p>会員：${escapeHtml(res.ticket.userName)} / ${escapeHtml(res.ticket.userEmail)}</p>
       <p>会員チケット：<span class="code">${escapeHtml(res.ticket.ticketCode)}</span></p>
@@ -355,7 +366,7 @@ async function useTicket() {
       <p>使用日時：${formatDate(res.ticket.usedAt)}</p>
     `;
 
-    showMessage("チケットを使用済みにしました。");
+    showMessage(res.alreadyUsed ? "このチケットはすでに使用済みです。" : "チケットを使用済みにしました。");
     await refreshAdmin();
   } catch (err) {
     showMessage(err.message, "error");
