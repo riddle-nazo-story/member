@@ -338,3 +338,126 @@ th {
     align-items: stretch;
   }
 }
+
+/* =========================
+   admin mobile layout fix
+   - 上部カウント表示の崩れ修正
+   - フォームが横にはみ出す問題を修正
+========================= */
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.admin-header,
+main {
+  width: 100%;
+}
+
+input,
+select,
+textarea,
+button {
+  max-width: 100%;
+}
+
+.code {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .admin-header,
+  main {
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .admin-header {
+    display: block !important;
+  }
+
+  .admin-header h1 {
+    font-size: 28px !important;
+    line-height: 1.05 !important;
+  }
+
+  .stats {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    width: 100%;
+  }
+
+  .stat {
+    min-width: 0 !important;
+    padding: 10px !important;
+  }
+
+  .stat span {
+    font-size: 10px !important;
+    line-height: 1.2;
+    letter-spacing: .03em !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .stat strong {
+    font-size: 26px !important;
+    line-height: 1 !important;
+  }
+
+  .admin-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .admin-tab {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 11px 9px !important;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .grid,
+  .grid.two {
+    width: 100%;
+    grid-template-columns: 1fr !important;
+  }
+
+  .card {
+    width: 100%;
+    min-width: 0;
+    padding: 16px !important;
+  }
+
+  .table-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 720px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .stat strong {
+    font-size: 24px !important;
+  }
+}
