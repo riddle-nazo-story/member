@@ -461,3 +461,127 @@ button {
     font-size: 24px !important;
   }
 }
+
+/* =========================
+   運営サイト スマホ強制対応
+========================= */
+
+html,
+body {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  overflow-x: hidden !important;
+}
+
+body {
+  -webkit-text-size-adjust: 100%;
+}
+
+.admin-header,
+main {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+input,
+select,
+textarea,
+button {
+  max-width: 100% !important;
+}
+
+.code {
+  max-width: 100% !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+
+.stats {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+.stat {
+  min-width: 0 !important;
+}
+
+@media (max-width: 1200px) {
+  .admin-header,
+  main {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .admin-header {
+    display: block !important;
+  }
+
+  .admin-header h1 {
+    font-size: 28px !important;
+    line-height: 1.05 !important;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .stat {
+    padding: 10px !important;
+  }
+
+  .stat span {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    letter-spacing: .03em !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .stat strong {
+    font-size: 26px !important;
+    line-height: 1 !important;
+  }
+
+  .admin-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .admin-tab {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 11px 9px !important;
+    font-size: 13px !important;
+    text-align: center !important;
+  }
+
+  .grid,
+  .grid.two {
+    width: 100% !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  .card {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 16px !important;
+  }
+
+  .table-wrap {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  table {
+    min-width: 720px !important;
+  }
+}
