@@ -84,11 +84,11 @@ async function loadDashboard() {
   $("stats").innerHTML = `
     <div class="stat"><span>会員</span><strong>${data.users}</strong></div>
     <div class="stat"><span>公演</span><strong>${data.events}</strong></div>
-    <div class="stat"><span>会員チケット</span><strong>${data.tickets}</strong></div>
-    <div class="stat"><span>ゲームtoken</span><strong>${data.gameTickets}</strong></div>
-    <div class="stat"><span>有料認証</span><strong>${data.paidAccess}</strong></div>
-    <div class="stat"><span>スタンプコード</span><strong>${data.stampCodes}</strong></div>
-    <div class="stat"><span>スタンプ取得</span><strong>${data.stampLogs}</strong></div>
+    <div class="stat"><span>会員券</span><strong>${data.tickets}</strong></div>
+    <div class="stat"><span>URL</span><strong>${data.gameTickets}</strong></div>
+    <div class="stat"><span>有料</span><strong>${data.paidAccess}</strong></div>
+    <div class="stat"><span>スタンプ</span><strong>${data.stampCodes}</strong></div>
+    <div class="stat"><span>取得</span><strong>${data.stampLogs}</strong></div>
   `;
 }
 
@@ -135,6 +135,7 @@ function renderEventsTable(events) {
             <th>状態</th>
             <th>gameId</th>
             <th>ゲーム公開URL</th>
+            <th>URL有効時間</th>
             <th>ショップ</th>
             <th>有料コード</th>
             <th>プレイURL</th>
@@ -152,6 +153,7 @@ function renderEventsTable(events) {
               <td>${escapeHtml(e.status)}</td>
               <td>${escapeHtml(e.gameId || "")}</td>
               <td>${e.gameBaseUrl ? `<a href="${escapeAttr(e.gameBaseUrl)}" target="_blank" rel="noopener">開く</a>` : ""}</td>
+              <td>${escapeHtml(e.ticketValidHours || "24")}時間</td>
               <td>${e.shopUrl ? `<a href="${escapeAttr(e.shopUrl)}" target="_blank" rel="noopener">開く</a>` : ""}</td>
               <td><span class="code">${escapeHtml(e.paidCode || "")}</span></td>
               <td>${e.playUrl ? `<a href="${escapeAttr(e.playUrl)}" target="_blank" rel="noopener">開く</a>` : ""}</td>
@@ -191,6 +193,7 @@ function startEventEdit(eventId) {
   $("eventMainVisualUrl").value = event.mainVisualUrl || "";
   $("eventStory").value = event.story || "";
   $("eventNotes").value = event.notes || "";
+  $("eventTicketValidHours").value = event.ticketValidHours || "24";
   $("eventMaxFreeTickets").value = event.maxFreeTickets || "1";
   $("eventDescription").value = event.description || "";
 
@@ -258,6 +261,7 @@ function clearEventForm() {
   $("eventMainVisualUrl").value = "";
   $("eventStory").value = "";
   $("eventNotes").value = "";
+  $("eventTicketValidHours").value = "24";
   $("eventMaxFreeTickets").value = "1";
   $("eventDescription").value = "";
 
@@ -270,6 +274,7 @@ async function generateStamp() {
     const res = await api("adminGenerateStampCode", {
       token: getAdminToken(),
       eventId: $("stampEventId").value,
+      stampName: $("stampName").value,
       point: $("stampPoint").value,
       limitType: $("stampLimitType").value,
       maxUses: $("stampMaxUses").value,
@@ -277,6 +282,7 @@ async function generateStamp() {
 
     $("generatedStamp").classList.remove("hidden");
     $("generatedStampCode").textContent = res.stampCode;
+    if ($("stampName")) $("stampName").value = "";
 
     const qrBox = $("qrBox");
     qrBox.innerHTML = "";
@@ -319,7 +325,8 @@ function renderStampTable(stamps) {
       <table>
         <thead>
           <tr>
-            <th>公演</th>
+            <th>スタンプ名</th>
+            <th>対象公演</th>
             <th>コード</th>
             <th>pt</th>
             <th>制限</th>
@@ -331,6 +338,7 @@ function renderStampTable(stamps) {
         <tbody>
           ${stamps.map((s) => `
             <tr>
+              <td>${escapeHtml(s.stampName || s.eventTitle)}</td>
               <td>${escapeHtml(s.eventTitle)}</td>
               <td><span class="code">${escapeHtml(s.stampCode)}</span></td>
               <td>${escapeHtml(s.point)}</td>
@@ -358,15 +366,15 @@ async function useTicket() {
     $("usedTicketResult").classList.remove("hidden");
     $("usedTicketResult").innerHTML = `
       <h3>${res.alreadyUsed ? "すでに使用済みです" : "使用済みにしました"}</h3>
-      <p>公演：${escapeHtml(res.ticket.eventTitle)}</p>
-      <p>会員：${escapeHtml(res.ticket.userName)} / ${escapeHtml(res.ticket.userEmail)}</p>
-      <p>会員チケット：<span class="code">${escapeHtml(res.ticket.ticketCode)}</span></p>
-      <p>ゲームtoken：<span class="code">${escapeHtml(res.ticket.gameToken || "")}</span></p>
-      ${res.ticket.gameUrl ? `<p><a href="${escapeAttr(res.ticket.gameUrl)}" target="_blank" rel="noopener">ゲームURLを開く</a></p>` : ""}
-      <p>使用日時：${formatDate(res.ticket.usedAt)}</p>
+      <p>公演：${escapeHtml(res.ticket.eventTitle || "")}</p>
+      <p>会員：${escapeHtml(res.ticket.userName || "")}${res.ticket.userEmail ? " / " + escapeHtml(res.ticket.userEmail) : ""}</p>
+      ${res.ticket.ticketCode ? `<p>会員チケット：<span class="code">${escapeHtml(res.ticket.ticketCode)}</span></p>` : ""}
+      ${res.ticket.gameUrl ? `<p>ゲームURL：<span class="code">${escapeHtml(res.ticket.gameUrl)}</span></p><p><a href="${escapeAttr(res.ticket.gameUrl)}" target="_blank" rel="noopener">ゲームURLを開く</a></p>` : ""}
+      ${res.ticket.gameStatus ? `<p>ゲーム状態：${gameStatusText(res.ticket.gameStatus)}</p>` : ""}
+      <p>処理日時：${formatDate(res.ticket.usedAt)}</p>
     `;
 
-    showMessage(res.alreadyUsed ? "このチケットはすでに使用済みです。" : "チケットを使用済みにしました。");
+    showMessage(res.message || (res.alreadyUsed ? "このチケットはすでに使用済みです。" : "チケットを使用済みにしました。"));
     await refreshAdmin();
   } catch (err) {
     showMessage(err.message, "error");
@@ -395,8 +403,9 @@ function renderTicketsTable(tickets) {
         <thead>
           <tr>
             <th>会員チケット</th>
-            <th>ゲームtoken</th>
-            <th>状態</th>
+            <th>発行元</th>
+            <th>会員状態</th>
+            <th>ゲーム状態</th>
             <th>公演</th>
             <th>会員</th>
             <th>ゲームURL</th>
@@ -408,11 +417,12 @@ function renderTicketsTable(tickets) {
           ${tickets.map((t) => `
             <tr>
               <td><span class="code">${escapeHtml(t.ticketCode)}</span></td>
-              <td><span class="code">${escapeHtml(t.gameToken || "")}</span></td>
+              <td>${escapeHtml(t.source === "tickets" ? "外部発行" : "会員サイト")}</td>
               <td>${statusText(t.status)}</td>
+              <td>${gameStatusText(t.gameStatus)}${t.gameExpiresAt ? `<br><span class="muted">期限：${formatDate(t.gameExpiresAt)}</span>` : ""}</td>
               <td>${escapeHtml(t.eventTitle)}</td>
               <td>${escapeHtml(t.userName)}<br><span class="muted">${escapeHtml(t.userEmail)}</span></td>
-              <td>${t.gameUrl ? `<a href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener">開く</a>` : ""}</td>
+              <td>${t.gameUrl ? `<a href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener">開く</a><br><span class="code">${escapeHtml(t.gameUrl)}</span>` : ""}</td>
               <td>${formatDate(t.createdAt)}</td>
               <td>${formatDate(t.usedAt)}</td>
             </tr>
@@ -499,6 +509,19 @@ function showAdminMain() {
 
 function getAdminToken() {
   return localStorage.getItem(ADMIN_TOKEN_KEY);
+}
+
+function gameStatusText(status) {
+  const map = {
+    unused: "未アクセス",
+    active: "使用中",
+    used: "使用済み",
+    expired: "期限切れ・使用不可",
+    cleared: "クリア済み",
+    blocked: "無効",
+  };
+
+  return map[status] || status || "";
 }
 
 function statusText(status) {
