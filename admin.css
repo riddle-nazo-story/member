@@ -1,14 +1,15 @@
 :root {
-  --bg: #101010;
-  --card: #181818;
-  --card2: #202020;
-  --text: #f5f5f5;
-  --muted: #a0a0a0;
-  --line: #333;
-  --accent: #d6a85c;
-  --danger: #d94a4a;
-  --ok: #35a56d;
-  --radius: 18px;
+  --bg: #ffffff;
+  --card: #ffffff;
+  --card2: #f7f7f7;
+  --text: #050505;
+  --muted: #666666;
+  --line: #d8d8d8;
+  --accent: #050505;
+  --danger: #b00020;
+  --ok: #087a3d;
+  --radius: 0px;
+  --shadow: none;
 }
 
 * {
@@ -17,11 +18,26 @@
 
 body {
   margin: 0;
-  background:
-    radial-gradient(circle at top right, rgba(214,168,92,.18), transparent 30%),
-    var(--bg);
+  background: #fff;
   color: var(--text);
-  font-family: "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+  font-family:
+    "Hiragino Kaku Gothic ProN",
+    "Hiragino Sans",
+    "Noto Sans JP",
+    system-ui,
+    sans-serif;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.035) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(0,0,0,.025) 1px, transparent 1px);
+  background-size: 42px 42px;
+  z-index: -1;
 }
 
 button,
@@ -32,51 +48,66 @@ textarea {
 }
 
 button {
-  border: none;
-  border-radius: 999px;
+  border: 1px solid #050505;
+  border-radius: 0;
   padding: 12px 18px;
-  background: var(--accent);
-  color: #111;
+  background: #050505;
+  color: #fff;
   cursor: pointer;
-  font-weight: 900;
+  font-weight: 950;
+  letter-spacing: .04em;
 }
 
 button:hover {
-  opacity: .88;
+  transform: translateY(-1px);
 }
 
 button.ghost {
-  background: transparent;
+  background: #fff;
   color: var(--text);
-  border: 1px solid var(--line);
+  border: 1px solid var(--accent);
+}
+
+button.ghost:hover {
+  background: #050505;
+  color: #fff;
+}
+
+a {
+  color: var(--text);
 }
 
 .admin-header {
-  max-width: 1180px;
+  max-width: 1220px;
   margin: 0 auto;
-  padding: 28px 18px;
+  padding: 26px 18px 18px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: start;
+  gap: 16px;
+  border-bottom: 2px solid var(--accent);
 }
 
 .admin-header h1 {
   margin: 0;
-  font-size: clamp(30px, 5vw, 52px);
+  font-size: clamp(30px, 5vw, 56px);
+  line-height: .95;
+  letter-spacing: -.03em;
+  font-weight: 950;
 }
 
 .eyebrow {
-  margin: 0 0 6px;
-  font-size: 12px;
-  letter-spacing: .18em;
-  color: var(--accent);
-  font-weight: 900;
+  margin: 0 0 7px;
+  font-size: 11px;
+  letter-spacing: .22em;
+  color: var(--muted);
+  font-weight: 950;
 }
 
 main {
-  max-width: 1180px;
+  max-width: 1220px;
   margin: 0 auto;
-  padding: 0 18px 60px;
+  padding: 24px 18px 64px;
 }
 
 .grid {
@@ -85,32 +116,34 @@ main {
 }
 
 .grid.two {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(320px, 460px) 1fr;
 }
 
 .card {
-  background: rgba(24,24,24,.92);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 22px;
-  box-shadow: 0 18px 50px rgba(0,0,0,.28);
+  background: var(--card);
+  border: 1px solid var(--accent);
+  border-radius: 0;
+  padding: clamp(18px, 3vw, 28px);
+  box-shadow: none;
 }
 
 .card.narrow {
-  max-width: 520px;
+  max-width: 540px;
   margin: 0 auto;
 }
 
 .card h2,
 .card h3 {
   margin-top: 0;
+  font-weight: 950;
+  letter-spacing: -.03em;
 }
 
 label {
   display: grid;
   gap: 7px;
   margin: 14px 0;
-  font-weight: 800;
+  font-weight: 950;
 }
 
 input,
@@ -118,9 +151,9 @@ select,
 textarea {
   width: 100%;
   color: var(--text);
-  background: #0d0d0d;
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  background: #fff;
+  border: 1px solid var(--accent);
+  border-radius: 0;
   padding: 13px 14px;
 }
 
@@ -132,26 +165,29 @@ textarea {
 .stats {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
   margin-bottom: 18px;
 }
 
 .stat {
   background: var(--card2);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 16px;
+  border: 1px solid var(--accent);
+  padding: 14px;
 }
 
 .stat span {
   display: block;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted);
+  letter-spacing: .1em;
+  font-weight: 900;
 }
 
 .stat strong {
   display: block;
-  font-size: 28px;
+  font-size: 32px;
+  line-height: 1;
+  font-weight: 950;
 }
 
 .admin-tabs,
@@ -163,25 +199,31 @@ textarea {
 }
 
 .admin-tab {
-  background: #151515;
+  background: #fff;
   color: var(--text);
-  border: 1px solid var(--line);
+  border: 1px solid var(--accent);
+}
+
+.admin-tab::after {
+  content: " 〉";
 }
 
 .admin-tab.active {
-  background: var(--accent);
-  color: #111;
+  background: #050505;
+  color: #fff;
 }
 
 .table-wrap {
   width: 100%;
   overflow-x: auto;
+  border: 1px solid var(--accent);
 }
 
 table {
   width: 100%;
-  min-width: 900px;
+  min-width: 980px;
   border-collapse: collapse;
+  background: #fff;
 }
 
 th,
@@ -193,8 +235,11 @@ td {
 }
 
 th {
-  color: var(--accent);
-  font-size: 13px;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: .08em;
+  font-weight: 950;
+  background: #f5f5f5;
 }
 
 .small-btn {
@@ -207,7 +252,6 @@ th {
   background: #050505;
   color: #fff;
   padding: 8px 10px;
-  border-radius: 10px;
   word-break: break-all;
   display: inline-block;
 }
@@ -216,9 +260,8 @@ th {
 .result-box {
   margin-top: 18px;
   padding: 16px;
-  background: #111;
-  border: 1px solid var(--line);
-  border-radius: 16px;
+  background: #f7f7f7;
+  border: 1px solid var(--accent);
 }
 
 #qrBox {
@@ -226,19 +269,18 @@ th {
   background: #fff;
   width: fit-content;
   padding: 12px;
-  border-radius: 12px;
+  border: 1px solid var(--accent);
 }
 
 .message {
   position: fixed;
   right: 18px;
   bottom: 18px;
-  max-width: min(420px, calc(100vw - 36px));
-  border-radius: 16px;
+  max-width: min(440px, calc(100vw - 36px));
   padding: 16px 18px;
   background: var(--ok);
   color: #fff;
-  box-shadow: 0 20px 45px rgba(0,0,0,.25);
+  box-shadow: 8px 8px 0 rgba(0,0,0,.16);
   z-index: 10;
 }
 
@@ -254,7 +296,7 @@ th {
   display: none !important;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 900px) {
   .grid.two,
   .stats {
     grid-template-columns: 1fr;
@@ -262,7 +304,6 @@ th {
 
   .admin-header {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    align-items: stretch;
   }
 }
