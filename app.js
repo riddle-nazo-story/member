@@ -1,23 +1,31 @@
-// GASのWebアプリURLに変更してください
+// GASのWebアプリURL
 const API_URL = "https://script.google.com/macros/s/AKfycbwZJGvGsEXSeMRPNU_jzqTvYyA5yhNbIAR-ZprH0O4Wbl6CeJX6YzWTpXS5_WUPVA45dQ/exec";
 
 const TOKEN_KEY = "rs_member_token";
-const $ = (id) => document.getElementById(id);
 const RETURN_TO_KEY = "rs_return_to";
+
+const $ = (id) => document.getElementById(id);
 
 let currentUser = null;
 let qrScanner = null;
 let qrBusy = false;
 
+let ticketPageIndex = 0;
+let ticketGroupsCache = [];
+
+let stampPageIndex = 0;
+let stampGroupsCache = [];
+
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
-    const params = new URLSearchParams(location.search);
+  const params = new URLSearchParams(location.search);
   const returnTo = params.get("returnTo");
 
   if (returnTo) {
     sessionStorage.setItem(RETURN_TO_KEY, returnTo);
   }
+
   bindEvents();
 
   const token = getToken();
@@ -30,6 +38,7 @@ async function init() {
       await loadMyData();
     } catch (err) {
       localStorage.removeItem(TOKEN_KEY);
+      currentUser = null;
       showAuth();
     }
   } else {
@@ -38,27 +47,39 @@ async function init() {
 }
 
 function bindEvents() {
-  $("loginBtn").addEventListener("click", login);
-  $("registerBtn").addEventListener("click", register);
-  $("logoutBtn").addEventListener("click", logout);
-  $("redeemStampBtn").addEventListener("click", redeemStamp);
-  $("startQrBtn").addEventListener("click", startQr);
-  $("stopQrBtn").addEventListener("click", stopQr);
+  addClick("loginBtn", login);
+  addClick("registerBtn", register);
+  addClick("logoutBtn", logout);
+  addClick("redeemStampBtn", redeemStamp);
+  addClick("startQrBtn", startQr);
+  addClick("stopQrBtn", stopQr);
 
   document.querySelectorAll(".tab").forEach((btn) => {
     btn.addEventListener("click", () => switchTab(btn.dataset.tab));
   });
 }
 
+function addClick(id, fn) {
+  const el = $(id);
+  if (!el) return;
+  el.addEventListener("click", fn);
+}
+
 async function api(action, data = {}) {
   const res = await fetch(API_URL, {
     method: "POST",
-    body: JSON.stringify({ action, data }),
+    body: JSON.stringify({
+      action,
+      data,
+    }),
   });
 
   const json = await res.json();
 
-  if (!json.ok) throw new Error(json.error || "通信エラーが発生しました。");
+  if (!json.ok) {
+    throw new Error(json.error || "通信エラーが発生しました。");
+  }
+
   return json.result;
 }
 
@@ -74,12 +95,12 @@ async function login() {
 
     showMessage("ログインしました。", "ok");
 
-if (redirectAfterLoginIfNeeded()) {
-  return;
-}
+    if (redirectAfterLoginIfNeeded()) {
+      return;
+    }
 
-showMember();
-await loadMyData();
+    showMember();
+    await loadMyData();
   } catch (err) {
     showMessage(err.message, "error");
   }
@@ -100,12 +121,12 @@ async function register() {
 
     showMessage("会員登録が完了しました。", "ok");
 
-if (redirectAfterLoginIfNeeded()) {
-  return;
-}
+    if (redirectAfterLoginIfNeeded()) {
+      return;
+    }
 
-showMember();
-await loadMyData();
+    showMember();
+    await loadMyData();
   } catch (err) {
     showMessage(err.message, "error");
   }
@@ -125,9 +146,9 @@ async function startQr() {
       return;
     }
 
-    $("qrReader").classList.remove("hidden");
-    $("startQrBtn").classList.add("hidden");
-    $("stopQrBtn").classList.remove("hidden");
+    if ($("qrReader")) $("qrReader").classList.remove("hidden");
+    if ($("startQrBtn")) $("startQrBtn").classList.add("hidden");
+    if ($("stopQrBtn")) $("stopQrBtn").classList.remove("hidden");
 
     qrScanner = new Html5Qrcode("qrReader");
 
@@ -136,11 +157,19 @@ async function startQr() {
       { fps: 10, qrbox: { width: 240, height: 240 } },
       async (decodedText) => {
         if (qrBusy) return;
+
         qrBusy = true;
-        $("stampCodeInput").value = decodedText;
+
+        if ($("stampCodeInput")) {
+          $("stampCodeInput").value = decodedText;
+        }
+
         await stopQr();
         await redeemStamp();
-        setTimeout(() => { qrBusy = false; }, 1200);
+
+        setTimeout(() => {
+          qrBusy = false;
+        }, 1200);
       },
       () => {}
     );
@@ -159,6 +188,7 @@ async function stopQr() {
   } catch (err) {
   } finally {
     qrScanner = null;
+
     if ($("qrReader")) $("qrReader").classList.add("hidden");
     if ($("startQrBtn")) $("startQrBtn").classList.remove("hidden");
     if ($("stopQrBtn")) $("stopQrBtn").classList.add("hidden");
@@ -167,31 +197,55 @@ async function stopQr() {
 
 async function redeemStamp() {
   try {
-    const stampCode = $("stampCodeInput").value.trim();
+    const rawValue = $("stampCodeInput") ? $("stampCodeInput").value.trim() : "";
+    const stampCode = extractStampCode(rawValue);
+
+    if (!stampCode) {
+      showMessage("スタンプコードを入力してください。", "error");
+      return;
+    }
 
     const res = await api("redeemStampCode", {
       token: getToken(),
       stampCode,
     });
 
-    $("stampCodeInput").value = "";
-    showMessage(`${res.stampName || res.event.title} のスタンプを取得しました。 +${res.point}pt`, "ok");
+    if ($("stampCodeInput")) {
+      $("stampCodeInput").value = "";
+    }
+
+    const stampName = res.stampName || res.event?.title || "スタンプ";
+    showMessage(`${stampName} を取得しました。 +${res.point}pt`, "ok");
+
     await loadMyData();
   } catch (err) {
     showMessage(err.message, "error");
   }
 }
 
+function extractStampCode(value) {
+  if (!value) return "";
+
+  try {
+    const url = new URL(value);
+    return url.searchParams.get("code") || url.searchParams.get("stampCode") || value;
+  } catch (err) {
+    return value;
+  }
+}
+
 async function loadMyData() {
-  const data = await api("getMyData", { token: getToken() });
+  const data = await api("getMyData", {
+    token: getToken(),
+  });
 
-  $("userName").textContent = data.user.name;
-  $("userEmail").textContent = data.user.email;
-  $("totalPoint").textContent = data.totalPoint;
+  if ($("userName")) $("userName").textContent = data.user.name;
+  if ($("userEmail")) $("userEmail").textContent = data.user.email;
+  if ($("totalPoint")) $("totalPoint").textContent = data.totalPoint;
 
-  renderTickets(data.tickets);
-  renderParticipations(data.participations);
-  renderStamps(data.stamps);
+  renderTickets(data.tickets || []);
+  renderParticipations(data.participations || []);
+  renderStamps(data.stamps || []);
 }
 
 function renderTickets(tickets) {
@@ -199,7 +253,9 @@ function renderTickets(tickets) {
 
   if (!root) return;
 
-  if (!tickets.length) {
+  if (!tickets || !tickets.length) {
+    ticketGroupsCache = [];
+    ticketPageIndex = 0;
     root.innerHTML = `<p class="muted">まだチケットはありません。チケット購入サイトから発行してください。</p>`;
     return;
   }
@@ -216,54 +272,87 @@ function renderTickets(tickets) {
     grouped[eventTitle].push(ticket);
   });
 
-  root.innerHTML = Object.keys(grouped).map((eventTitle) => {
-    const list = grouped[eventTitle];
+  ticketGroupsCache = Object.keys(grouped).map((eventTitle) => ({
+    eventTitle,
+    tickets: grouped[eventTitle],
+  }));
 
-    return `
-      <div class="mini-item">
-        <h3>${escapeHtml(eventTitle)}</h3>
+  if (ticketPageIndex >= ticketGroupsCache.length) {
+    ticketPageIndex = 0;
+  }
 
-        <ol class="ticket-url-list">
-          ${list.map((t, index) => `
-            <li>
-              <div class="ticket-url-row">
-                <span class="ticket-number">${index + 1}.</span>
+  renderTicketPage();
+}
 
-                <div class="ticket-url-body">
-                  ${t.gameUrl ? `
-                    <a href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener" class="game-link">
-                      ゲームを開く
-                    </a>
+function renderTicketPage() {
+  const root = $("myTickets");
 
-                    <button type="button" class="copy-url-btn ghost" data-copy-url="${escapeAttr(t.gameUrl)}">
-                      URLコピー
-                    </button>
-                  ` : `<span class="muted">ゲームURLなし</span>`}
+  if (!root) return;
 
-                  <p class="muted">
-                    会員状態：${statusText(t.status)}
-                    ${t.gameStatus ? ` / URL状態：${gameStatusText(t.gameStatus)}` : ""}
-                    ${t.gameExpiresAt ? ` / 期限：${formatDate(t.gameExpiresAt)}` : ""}
-                    ${t.usedAt ? ` / 使用日：${formatDate(t.usedAt)}` : ""}
-                  </p>
-                </div>
-              </div>
-            </li>
-          `).join("")}
-        </ol>
+  const group = ticketGroupsCache[ticketPageIndex];
+
+  if (!group) {
+    root.innerHTML = `<p class="muted">まだチケットはありません。</p>`;
+    return;
+  }
+
+  root.innerHTML = `
+    <div class="mini-item paged-ticket-box">
+      <div class="page-head">
+        <div>
+          <p class="eyebrow">GAME URL</p>
+          <h3>${escapeHtml(group.eventTitle)}</h3>
+        </div>
+        <p class="muted">${ticketPageIndex + 1} / ${ticketGroupsCache.length}</p>
       </div>
-    `;
-  }).join("");
+
+      <div class="ticket-page-list">
+        ${group.tickets.map((t) => `
+          <div class="ticket-page-item">
+            ${t.gameUrl ? `
+              <div class="button-row">
+                <a href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener" class="game-link">
+                  ゲームを開く
+                </a>
+
+                <button type="button" class="copy-url-btn ghost" data-copy-url="${escapeAttr(t.gameUrl)}">
+                  URLコピー
+                </button>
+              </div>
+            ` : `<span class="muted">ゲームURLなし</span>`}
+
+            <p class="muted">
+              会員状態：${statusText(t.status)}
+              ${t.gameStatus ? ` / URL状態：${gameStatusText(t.gameStatus)}` : ""}
+              ${t.gameExpiresAt ? ` / 期限：${formatDate(t.gameExpiresAt)}` : ""}
+              ${t.usedAt ? ` / 使用日：${formatDate(t.usedAt)}` : ""}
+            </p>
+          </div>
+        `).join("")}
+      </div>
+
+      ${renderPager(ticketGroupsCache.length, ticketPageIndex, "ticket")}
+    </div>
+  `;
 
   root.querySelectorAll(".copy-url-btn").forEach((btn) => {
     btn.addEventListener("click", () => copyUrl(btn.dataset.copyUrl));
+  });
+
+  root.querySelectorAll("[data-ticket-page]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      ticketPageIndex = Number(btn.dataset.ticketPage);
+      renderTicketPage();
+    });
   });
 }
 
 function renderParticipations(list) {
   const root = $("myParticipations");
 
-  if (!list.length) {
+  if (!root) return;
+
+  if (!list || !list.length) {
     root.innerHTML = `<p class="muted">参加済み公演はまだありません。</p>`;
     return;
   }
@@ -286,6 +375,8 @@ function renderStamps(stamps) {
   if (!root) return;
 
   if (!stamps || !stamps.length) {
+    stampGroupsCache = [];
+    stampPageIndex = 0;
     root.innerHTML = `<p class="muted">まだスタンプ履歴はありません。</p>`;
     return;
   }
@@ -302,36 +393,91 @@ function renderStamps(stamps) {
     grouped[eventTitle].push(stamp);
   });
 
-  root.innerHTML = Object.keys(grouped).map((eventTitle) => {
-    const list = grouped[eventTitle];
+  stampGroupsCache = Object.keys(grouped).map((eventTitle) => ({
+    eventTitle,
+    stamps: grouped[eventTitle],
+  }));
 
-    return `
-      <div class="mini-item">
-        <h3>${escapeHtml(eventTitle)}</h3>
+  if (stampPageIndex >= stampGroupsCache.length) {
+    stampPageIndex = 0;
+  }
 
-        <ol class="stamp-history-list">
-          ${list.map((stamp, index) => `
-            <li>
-              <div class="stamp-history-row">
-                <span class="stamp-number">${index + 1}.</span>
+  renderStampPage();
+}
 
-                <div class="stamp-history-body">
-                  <strong>${escapeHtml(stamp.stampName || stamp.eventTitle || "スタンプ")}</strong>
+function renderStampPage() {
+  const root = $("myStamps");
 
-                  <p class="muted">
-                    ${stamp.point ? `+${escapeHtml(stamp.point)}pt` : ""}
-                    ${stamp.createdAt ? ` / 取得日：${formatDate(stamp.createdAt)}` : ""}
-                    ${stamp.usedAt ? ` / 取得日：${formatDate(stamp.usedAt)}` : ""}
-                    ${stamp.redeemedAt ? ` / 取得日：${formatDate(stamp.redeemedAt)}` : ""}
-                  </p>
-                </div>
-              </div>
-            </li>
-          `).join("")}
-        </ol>
+  if (!root) return;
+
+  const group = stampGroupsCache[stampPageIndex];
+
+  if (!group) {
+    root.innerHTML = `<p class="muted">まだスタンプ履歴はありません。</p>`;
+    return;
+  }
+
+  root.innerHTML = `
+    <div class="mini-item paged-stamp-box">
+      <div class="page-head">
+        <div>
+          <p class="eyebrow">STAMP HISTORY</p>
+          <h3>${escapeHtml(group.eventTitle)}</h3>
+        </div>
+        <p class="muted">${stampPageIndex + 1} / ${stampGroupsCache.length}</p>
       </div>
-    `;
+
+      <div class="stamp-page-list">
+        ${group.stamps.map((stamp) => {
+          const acquiredAt = stamp.redeemedAt || stamp.usedAt || stamp.createdAt || "";
+
+          return `
+            <div class="stamp-page-item">
+              <strong>${escapeHtml(stamp.stampName || stamp.eventTitle || "スタンプ")}</strong>
+
+              <p class="muted">
+                ${stamp.point !== undefined && stamp.point !== "" ? `+${escapeHtml(stamp.point)}pt` : ""}
+                ${acquiredAt ? ` / 取得日：${formatDate(acquiredAt)}` : ""}
+              </p>
+            </div>
+          `;
+        }).join("")}
+      </div>
+
+      ${renderPager(stampGroupsCache.length, stampPageIndex, "stamp")}
+    </div>
+  `;
+
+  root.querySelectorAll("[data-stamp-page]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      stampPageIndex = Number(btn.dataset.stampPage);
+      renderStampPage();
+    });
+  });
+}
+
+function renderPager(total, current, type) {
+  if (total <= 1) return "";
+
+  const buttons = Array.from({ length: total }, (_, i) => {
+    const active = i === current ? "active" : "";
+
+    if (type === "ticket") {
+      return `<button type="button" class="page-btn ${active}" data-ticket-page="${i}">${i + 1}</button>`;
+    }
+
+    if (type === "stamp") {
+      return `<button type="button" class="page-btn ${active}" data-stamp-page="${i}">${i + 1}</button>`;
+    }
+
+    return "";
   }).join("");
+
+  return `
+    <div class="page-buttons">
+      ${buttons}
+    </div>
+  `;
 }
 
 function switchTab(tab) {
@@ -343,23 +489,32 @@ function switchTab(tab) {
     panel.classList.add("hidden");
   });
 
-  $(`tab-${tab}`).classList.remove("hidden");
-  if (tab !== "stamp") stopQr();
+  const target = $(`tab-${tab}`);
+
+  if (target) {
+    target.classList.remove("hidden");
+  }
+
+  if (tab !== "stamp") {
+    stopQr();
+  }
 }
 
 function showAuth() {
-  $("authSection").classList.remove("hidden");
-  $("memberSection").classList.add("hidden");
-  $("logoutBtn").classList.add("hidden");
+  if ($("authSection")) $("authSection").classList.remove("hidden");
+  if ($("memberSection")) $("memberSection").classList.add("hidden");
+  if ($("logoutBtn")) $("logoutBtn").classList.add("hidden");
 }
 
 function showMember() {
-  $("authSection").classList.add("hidden");
-  $("memberSection").classList.remove("hidden");
-  $("logoutBtn").classList.remove("hidden");
+  if ($("authSection")) $("authSection").classList.add("hidden");
+  if ($("memberSection")) $("memberSection").classList.remove("hidden");
+  if ($("logoutBtn")) $("logoutBtn").classList.remove("hidden");
 }
 
-function getToken() { return localStorage.getItem(TOKEN_KEY); }
+function getToken() {
+  return localStorage.getItem(TOKEN_KEY);
+}
 
 function gameStatusText(status) {
   const map = {
@@ -384,28 +539,55 @@ async function copyUrl(url) {
 }
 
 function statusText(status) {
-  const map = { issued: "未使用", used: "使用済み", cancelled: "キャンセル済み" };
+  const map = {
+    issued: "未使用",
+    used: "使用済み",
+    cancelled: "キャンセル済み",
+  };
+
   return map[status] || status;
 }
 
 function sourceText(source) {
-  const map = { ticket: "チケット使用", paid: "有料認証", stamp: "スタンプ", manual: "手動登録" };
+  const map = {
+    ticket: "チケット使用",
+    paid: "有料認証",
+    stamp: "スタンプ",
+    manual: "手動登録",
+  };
+
   return map[source] || source;
 }
 
 function showMessage(text, type = "ok") {
   const el = $("message");
+
+  if (!el) {
+    alert(text);
+    return;
+  }
+
   el.textContent = text;
   el.className = `message ${type}`;
   el.classList.remove("hidden");
-  setTimeout(() => el.classList.add("hidden"), 4500);
+
+  setTimeout(() => {
+    el.classList.add("hidden");
+  }, 4500);
 }
 
 function formatDate(value) {
   if (!value) return "";
+
   const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+
+  if (Number.isNaN(d.getTime())) {
+    return value;
+  }
+
+  return d.toLocaleString("ja-JP", {
+    timeZone: "Asia/Tokyo",
+  });
 }
 
 function escapeHtml(str) {
@@ -417,7 +599,9 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
-function escapeAttr(str) { return escapeHtml(str); }
+function escapeAttr(str) {
+  return escapeHtml(str);
+}
 
 function redirectAfterLoginIfNeeded() {
   const returnTo = sessionStorage.getItem(RETURN_TO_KEY);
