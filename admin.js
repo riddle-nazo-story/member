@@ -1,4 +1,4 @@
-// GASのWebアプリURLに変更してください
+// GASのWebアプリURL
 const API_URL = "https://script.google.com/macros/s/AKfycbwZJGvGsEXSeMRPNU_jzqTvYyA5yhNbIAR-ZprH0O4Wbl6CeJX6YzWTpXS5_WUPVA45dQ/exec";
 
 const ADMIN_TOKEN_KEY = "rs_admin_token";
@@ -145,8 +145,16 @@ function renderEventsTable(events) {
         <tbody>
           ${events.map((e) => `
             <tr>
-              <td><button class="small-btn" type="button" data-edit-event="${escapeAttr(e.eventId)}">編集</button></td>
-              <td><a href="ticket-event.html?eventId=${encodeURIComponent(e.eventId)}" target="_blank" rel="noopener">開く</a></td>
+              <td>
+                <button class="small-btn" type="button" data-edit-event="${escapeAttr(e.eventId)}">
+                  編集
+                </button>
+              </td>
+              <td>
+                <a href="ticket-event.html?eventId=${encodeURIComponent(e.eventId)}" target="_blank" rel="noopener">
+                  開く
+                </a>
+              </td>
               <td><span class="code">${escapeHtml(e.eventId)}</span></td>
               <td>${escapeHtml(e.title)}</td>
               <td>${escapeHtml(e.type)}</td>
@@ -225,6 +233,7 @@ async function saveEvent() {
       mainVisualUrl: $("eventMainVisualUrl").value,
       story: $("eventStory").value,
       notes: $("eventNotes").value,
+      ticketValidHours: $("eventTicketValidHours").value,
       maxFreeTickets: $("eventMaxFreeTickets").value,
       description: $("eventDescription").value,
     };
@@ -274,37 +283,42 @@ async function generateStamp() {
     const res = await api("adminGenerateStampCode", {
       token: getAdminToken(),
       eventId: $("stampEventId").value,
-      stampName: $("stampName").value,
+      stampName: $("stampName") ? $("stampName").value : "",
       point: $("stampPoint").value,
       limitType: $("stampLimitType").value,
       maxUses: $("stampMaxUses").value,
     });
 
+    const stampPageUrl = new URL("stamp.html", location.href);
+    stampPageUrl.searchParams.set("code", res.stampCode);
+
+    const stampUrl = stampPageUrl.toString();
+
     $("generatedStamp").classList.remove("hidden");
-    $("generatedStampCode").textContent = res.stampCode;
     $("generatedStampCode").textContent = stampUrl;
-    if ($("stampName")) $("stampName").value = "";
+
+    if ($("stampName")) {
+      $("stampName").value = "";
+    }
 
     const qrBox = $("qrBox");
     qrBox.innerHTML = "";
 
     if (window.QRCode) {
-      const stampUrl =
-  location.origin +
-  location.pathname.replace("admin.html", "stamp.html") +
-  "?code=" +
-  encodeURIComponent(res.stampCode);
-
-new QRCode(qrBox, {
-  text: stampUrl,
-  width: 180,
-  height: 180,
-});
+      new QRCode(qrBox, {
+        text: stampUrl,
+        width: 180,
+        height: 180,
+      });
     } else {
-      qrBox.textContent = "QR生成ライブラリの読み込みに失敗しました。コードを手動で使ってください。";
+      qrBox.innerHTML = `
+        <p>QR生成ライブラリの読み込みに失敗しました。</p>
+        <p>下のURLをコピーして使ってください。</p>
+        <p class="code">${escapeHtml(stampUrl)}</p>
+      `;
     }
 
-    showMessage("スタンプコードを生成しました。");
+    showMessage("スタンプURLを生成しました。");
     await refreshAdmin();
   } catch (err) {
     showMessage(err.message, "error");
@@ -553,6 +567,12 @@ function limitTypeText(type) {
 
 function showMessage(text, type = "ok") {
   const el = $("adminMessage");
+
+  if (!el) {
+    alert(text);
+    return;
+  }
+
   el.textContent = text;
   el.className = `message ${type}`;
   el.classList.remove("hidden");
