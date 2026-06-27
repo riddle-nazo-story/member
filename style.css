@@ -1406,3 +1406,45 @@ svg {
     justify-content: center !important;
   }
 }
+
+.member-status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.member-status-grid .card {
+  height: 100%;
+}
+
+#emailVerifyCard,
+#campaignMailCard {
+  max-width: none;
+}
+
+#emailVerifyCode {
+  max-width: 100%;
+}
+
+#campaignMailCard .check {
+  align-items: flex-start;
+  line-height: 1.7;
+}
+
+@media (max-width: 820px) {
+  .member-status-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .button-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .button-row button {
+    width: 100%;
+  }
+}
