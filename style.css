@@ -1303,3 +1303,22 @@ svg {
     padding: 16px !important;
   }
 }
+
+/* =========================
+   hiddenを最優先で効かせる
+   有料・確認・発行結果が最初から出る問題を修正
+========================= */
+
+.hidden {
+  display: none !important;
+}
+
+#freeArea.hidden,
+#paidArea.hidden,
+#confirmArea.hidden,
+#resultArea.hidden,
+#authNotice.hidden,
+#notFound.hidden,
+#mainVisual.hidden {
+  display: none !important;
+}
