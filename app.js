@@ -197,28 +197,63 @@ async function loadMyData() {
 function renderTickets(tickets) {
   const root = $("myTickets");
 
+  if (!root) return;
+
   if (!tickets.length) {
     root.innerHTML = `<p class="muted">まだチケットはありません。チケット購入サイトから発行してください。</p>`;
     return;
   }
 
-  root.innerHTML = `
-    <div class="mini-list">
-      ${tickets.map((t) => `
-        <div class="mini-item">
-          <strong>${escapeHtml(t.eventTitle)}</strong>
-          <p>会員チケット：<span class="code">${escapeHtml(t.ticketCode)}</span></p>
-          ${t.gameUrl ? `<p><span class="code">${escapeHtml(t.gameUrl)}</span></p><p><a class="game-link" href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener">ゲームを開く</a> <button type="button" class="copy-url-btn ghost" data-copy-url="${escapeAttr(t.gameUrl)}">URLコピー</button></p>` : ""}
-          <p class="muted">
-            会員状態：${statusText(t.status)} / ゲーム状態：${gameStatusText(t.gameStatus)}
-            ${t.gameExpiresAt ? " / URL期限：" + formatDate(t.gameExpiresAt) : ""}
-            ${t.usedAt ? " / 使用日：" + formatDate(t.usedAt) : ""}
-          </p>
-          <p class="muted">発行日：${formatDate(t.createdAt)}</p>
-        </div>
-      `).join("")}
-    </div>
-  `;
+  const grouped = {};
+
+  tickets.forEach((ticket) => {
+    const eventTitle = ticket.eventTitle || ticket.eventId || "未分類";
+
+    if (!grouped[eventTitle]) {
+      grouped[eventTitle] = [];
+    }
+
+    grouped[eventTitle].push(ticket);
+  });
+
+  root.innerHTML = Object.keys(grouped).map((eventTitle) => {
+    const list = grouped[eventTitle];
+
+    return `
+      <div class="mini-item">
+        <h3>${escapeHtml(eventTitle)}</h3>
+
+        <ol class="ticket-url-list">
+          ${list.map((t, index) => `
+            <li>
+              <div class="ticket-url-row">
+                <span class="ticket-number">${index + 1}.</span>
+
+                <div class="ticket-url-body">
+                  ${t.gameUrl ? `
+                    <a href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener" class="game-link">
+                      ゲームを開く
+                    </a>
+
+                    <button type="button" class="copy-url-btn ghost" data-copy-url="${escapeAttr(t.gameUrl)}">
+                      URLコピー
+                    </button>
+                  ` : `<span class="muted">ゲームURLなし</span>`}
+
+                  <p class="muted">
+                    会員状態：${statusText(t.status)}
+                    ${t.gameStatus ? ` / URL状態：${gameStatusText(t.gameStatus)}` : ""}
+                    ${t.gameExpiresAt ? ` / 期限：${formatDate(t.gameExpiresAt)}` : ""}
+                    ${t.usedAt ? ` / 使用日：${formatDate(t.usedAt)}` : ""}
+                  </p>
+                </div>
+              </div>
+            </li>
+          `).join("")}
+        </ol>
+      </div>
+    `;
+  }).join("");
 
   root.querySelectorAll(".copy-url-btn").forEach((btn) => {
     btn.addEventListener("click", () => copyUrl(btn.dataset.copyUrl));
