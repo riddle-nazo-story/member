@@ -939,3 +939,46 @@ svg {
 #eventsList .event-info {
   width: 100% !important;
 }
+
+/* =========================
+   ゲームURLをゲームごとに整理表示
+========================= */
+
+.ticket-url-list {
+  margin: 12px 0 0;
+  padding-left: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+
+.ticket-url-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: start;
+  border-top: 1px solid var(--main);
+  padding-top: 12px;
+}
+
+.ticket-number {
+  font-weight: 950;
+  font-size: 18px;
+}
+
+.ticket-url-body {
+  min-width: 0;
+}
+
+.ticket-url-body .game-link {
+  margin-right: 8px;
+}
+
+@media (max-width: 600px) {
+  .ticket-url-body .game-link,
+  .ticket-url-body .copy-url-btn {
+    width: 100%;
+    margin: 6px 0 0;
+    justify-content: center;
+  }
+}
