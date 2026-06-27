@@ -1580,3 +1580,52 @@ svg {
   outline: 3px solid #050505;
   outline-offset: 3px;
 }
+
+/* =========================
+   チェックボックス最終修正版
+========================= */
+
+.check input[type="checkbox"] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  width: 26px !important;
+  height: 26px !important;
+  margin: 4px 0 0 !important;
+  border: 2px solid #050505 !important;
+  background: #fff !important;
+  display: grid !important;
+  place-items: center !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.check input[type="checkbox"]::before {
+  content: "" !important;
+  width: 7px !important;
+  height: 13px !important;
+  background: transparent !important;
+  clip-path: none !important;
+  border-right: 4px solid #fff !important;
+  border-bottom: 4px solid #fff !important;
+  transform: rotate(45deg) scale(0) !important;
+  margin-top: -3px !important;
+  transition: transform 0.12s ease !important;
+}
+
+.check input[type="checkbox"]:checked {
+  background: #050505 !important;
+  border-color: #050505 !important;
+}
+
+.check input[type="checkbox"]:checked::before {
+  transform: rotate(45deg) scale(1) !important;
+}
+
+.check input[type="checkbox"]:hover {
+  background: #f3f3f3 !important;
+}
+
+.check input[type="checkbox"]:checked:hover {
+  background: #050505 !important;
+}
