@@ -1,5 +1,5 @@
 // GASのWebアプリURL
-const API_URL = "https://script.google.com/macros/s/AKfycbwZJGvGsEXSeMRPNU_jzqTvYyA5yhNbIAR-ZprH0O4Wbl6CeJX6YzWTpXS5_WUPVA45dQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzAAVNMkySPZaIYtVPtpuG4h9DtbhDPpAjy0FvTmwoLiWkN--KCXiiPTMLyKWxqlLeD/exec";
 
 const TOKEN_KEY = "rs_member_token";
 const RETURN_TO_KEY = "rs_return_to";
