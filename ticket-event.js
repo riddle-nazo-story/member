@@ -1,4 +1,4 @@
-// GASのWebアプリURLに変更してください
+// GASのWebアプリURL
 const API_URL = "https://script.google.com/macros/s/AKfycbwZJGvGsEXSeMRPNU_jzqTvYyA5yhNbIAR-ZprH0O4Wbl6CeJX6YzWTpXS5_WUPVA45dQ/exec";
 
 const TOKEN_KEY = "rs_member_token";
@@ -11,27 +11,50 @@ let confirmMode = null;
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
-  $("logoutBtn").addEventListener("click", logout);
-  $("showConfirmBtn").addEventListener("click", showFreeConfirm);
-  $("showPaidConfirmBtn").addEventListener("click", showPaidConfirm);
-  $("confirmIssueBtn").addEventListener("click", confirmAction);
-  $("backBtn").addEventListener("click", hideConfirm);
+  if ($("logoutBtn")) {
+    $("logoutBtn").addEventListener("click", logout);
+  }
+
+  if ($("showConfirmBtn")) {
+    $("showConfirmBtn").addEventListener("click", showFreeConfirm);
+  }
+
+  if ($("showPaidConfirmBtn")) {
+    $("showPaidConfirmBtn").addEventListener("click", showPaidConfirm);
+  }
+
+  if ($("confirmIssueBtn")) {
+    $("confirmIssueBtn").addEventListener("click", confirmAction);
+  }
+
+  if ($("backBtn")) {
+    $("backBtn").addEventListener("click", hideConfirm);
+  }
 
   const token = getToken();
-  if (!token) {
+
+  if (token) {
+    try {
+      const me = await api("me", { token });
+      currentUser = me.user;
+
+      if ($("logoutBtn")) {
+        $("logoutBtn").classList.remove("hidden");
+      }
+
+      if ($("authNotice")) {
+        $("authNotice").classList.add("hidden");
+      }
+    } catch (err) {
+      localStorage.removeItem(TOKEN_KEY);
+      currentUser = null;
+      showAuthNotice();
+    }
+  } else {
     showAuthNotice();
-    return;
   }
 
-  try {
-    const me = await api("me", { token });
-    currentUser = me.user;
-    $("logoutBtn").classList.remove("hidden");
-    await loadEvent();
-  } catch (err) {
-    localStorage.removeItem(TOKEN_KEY);
-    showAuthNotice();
-  }
+  await loadEvent();
 }
 
 async function api(action, data = {}) {
@@ -41,21 +64,29 @@ async function api(action, data = {}) {
   });
 
   const json = await res.json();
-  if (!json.ok) throw new Error(json.error || "通信エラーが発生しました。");
+
+  if (!json.ok) {
+    throw new Error(json.error || "通信エラーが発生しました。");
+  }
+
   return json.result;
 }
 
 async function loadEvent() {
-  const eventId = new URLSearchParams(location.search).get("eventId");
-  const events = await api("listEvents");
-  currentEvent = events.find((e) => e.eventId === eventId);
+  try {
+    const eventId = new URLSearchParams(location.search).get("eventId");
+    const events = await api("listEvents");
+    currentEvent = events.find((e) => e.eventId === eventId);
 
-  if (!currentEvent) {
-    $("notFound").classList.remove("hidden");
-    return;
+    if (!currentEvent) {
+      $("notFound").classList.remove("hidden");
+      return;
+    }
+
+    renderEvent(currentEvent);
+  } catch (err) {
+    showMessage(err.message, "error");
   }
-
-  renderEvent(currentEvent);
 }
 
 function renderEvent(event) {
@@ -101,32 +132,41 @@ function renderCountSelect(max) {
 }
 
 function showFreeConfirm() {
+  if (!requireLoginOrRedirect()) return;
+
   confirmMode = "free";
   const count = Number($("ticketCount").value || 1);
+
   $("confirmText").innerHTML = `
     <p><strong>公演名：</strong>${escapeHtml(currentEvent.title)}</p>
     <p><strong>種別：</strong>無料チケット発行</p>
     <p><strong>発行枚数：</strong>${count}枚</p>
-    <p class="muted">確定すると、ゲーム用token付きURLが発行されます。</p>
+    <p class="muted">確定すると、ゲームURLが発行されます。</p>
   `;
+
   $("confirmArea").classList.remove("hidden");
   $("confirmArea").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function showPaidConfirm() {
+  if (!requireLoginOrRedirect()) return;
+
   const code = $("paidCode").value.trim();
+
   if (!code) {
     showMessage("購入後コードを入力してください。", "error");
     return;
   }
 
   confirmMode = "paid";
+
   $("confirmText").innerHTML = `
     <p><strong>公演名：</strong>${escapeHtml(currentEvent.title)}</p>
     <p><strong>種別：</strong>有料コード認証</p>
     <p><strong>入力コード：</strong><span class="code">${escapeHtml(code)}</span></p>
     <p class="muted">この内容で認証します。認証に成功するとプレイURLを開きます。</p>
   `;
+
   $("confirmArea").classList.remove("hidden");
   $("confirmArea").scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -137,6 +177,8 @@ function hideConfirm() {
 }
 
 async function confirmAction() {
+  if (!requireLoginOrRedirect()) return;
+
   if (confirmMode === "free") {
     await issueFreeTickets();
   } else if (confirmMode === "paid") {
@@ -147,6 +189,7 @@ async function confirmAction() {
 async function issueFreeTickets() {
   try {
     const count = Number($("ticketCount").value || 1);
+
     const res = await api("issueFreeTickets", {
       token: getToken(),
       eventId: currentEvent.eventId,
@@ -164,6 +207,7 @@ async function issueFreeTickets() {
 async function verifyPaidCode() {
   try {
     const code = $("paidCode").value.trim();
+
     const res = await api("verifyPaidCode", {
       token: getToken(),
       eventId: currentEvent.eventId,
@@ -183,12 +227,26 @@ async function verifyPaidCode() {
 
 function renderResult(tickets) {
   $("resultArea").classList.remove("hidden");
+
   $("resultList").innerHTML = `
     <div class="mini-list">
-      ${tickets.map((t) => `
+      ${tickets.map((t, index) => `
         <div class="mini-item">
-          <p>会員チケット：<span class="code">${escapeHtml(t.ticketCode)}</span></p>
-          ${t.gameUrl ? `<p><span class="code">${escapeHtml(t.gameUrl)}</span></p><p><a class="game-link" href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener">ゲームを開く</a> <button type="button" class="copy-url-btn ghost" data-copy-url="${escapeAttr(t.gameUrl)}">URLコピー</button></p>` : ""}
+          <h3>${index + 1}. ゲームURL</h3>
+
+          ${t.gameUrl ? `
+            <p><span class="code">${escapeHtml(t.gameUrl)}</span></p>
+
+            <p>
+              <a class="game-link" href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener">
+                ゲームを開く
+              </a>
+
+              <button type="button" class="copy-url-btn ghost" data-copy-url="${escapeAttr(t.gameUrl)}">
+                URLコピー
+              </button>
+            </p>
+          ` : `<p class="muted">ゲームURLがありません。</p>`}
         </div>
       `).join("")}
     </div>
@@ -202,9 +260,38 @@ function renderResult(tickets) {
 }
 
 function showAuthNotice() {
-  $("authNotice").classList.remove("hidden");
-  $("eventSection").classList.add("hidden");
-  $("logoutBtn").classList.add("hidden");
+  const returnTo = encodeURIComponent(location.href);
+
+  if ($("authNotice")) {
+    $("authNotice").classList.remove("hidden");
+
+    $("authNotice").innerHTML = `
+      <h2>ログインが必要です</h2>
+      <p class="muted">
+        チケットの購入・発行にはログインが必要です。
+        公演内容はログインなしでも確認できます。
+      </p>
+      <a href="index.html?returnTo=${returnTo}" class="game-link">
+        ログインして続ける
+      </a>
+    `;
+  }
+
+  if ($("logoutBtn")) {
+    $("logoutBtn").classList.add("hidden");
+  }
+}
+
+function requireLoginOrRedirect() {
+  const token = getToken();
+
+  if (token) {
+    return true;
+  }
+
+  const returnTo = encodeURIComponent(location.href);
+  location.href = `index.html?returnTo=${returnTo}`;
+  return false;
 }
 
 function logout() {
@@ -226,11 +313,21 @@ async function copyUrl(url) {
 }
 
 function formatMultiline(text) {
-  return escapeHtml(text).split("\n").filter(Boolean).map((line) => `<p>${line}</p>`).join("");
+  return escapeHtml(text)
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => `<p>${line}</p>`)
+    .join("");
 }
 
 function showMessage(text, type = "ok") {
   const el = $("message");
+
+  if (!el) {
+    alert(text);
+    return;
+  }
+
   el.textContent = text;
   el.className = `message ${type}`;
   el.classList.remove("hidden");
@@ -251,14 +348,4 @@ function escapeHtml(str) {
 
 function escapeAttr(str) {
   return escapeHtml(str);
-}
-
-function requireLoginOrRedirect() {
-  const token = getToken();
-
-  if (token) return true;
-
-  const returnTo = encodeURIComponent(location.href);
-  location.href = `index.html?returnTo=${returnTo}`;
-  return false;
 }
