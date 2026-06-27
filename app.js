@@ -294,30 +294,34 @@ function renderTicketPage() {
       </div>
 
       <div class="ticket-page-list">
-        ${pageTickets.map((t) => `
-          <div class="ticket-page-item">
-            <strong>${escapeHtml(t.eventTitle || t.eventId || "公演名なし")}</strong>
+        ${pageTickets.map((t) => {
+          const displayGameStatus = getDisplayGameStatus(t);
 
-            ${t.gameUrl ? `
-              <div class="button-row">
-                <a href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener" class="game-link">
-                  ゲームを開く
-                </a>
+          return `
+            <div class="ticket-page-item">
+              <strong>${escapeHtml(t.eventTitle || t.eventId || "公演名なし")}</strong>
 
-                <button type="button" class="copy-url-btn ghost" data-copy-url="${escapeAttr(t.gameUrl)}">
-                  URLコピー
-                </button>
-              </div>
-            ` : `<p class="muted">ゲームURLなし</p>`}
+              ${t.gameUrl ? `
+                <div class="button-row">
+                  <a href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener" class="game-link">
+                    ゲームを開く
+                  </a>
 
-            <p class="muted">
-              会員状態：${statusText(t.status)}
-              ${t.gameStatus ? ` / URL状態：${gameStatusText(t.gameStatus)}` : ""}
-              ${t.gameExpiresAt ? ` / 期限：${formatDate(t.gameExpiresAt)}` : ""}
-              ${t.usedAt ? ` / 使用日：${formatDate(t.usedAt)}` : ""}
-            </p>
-          </div>
-        `).join("")}
+                  <button type="button" class="copy-url-btn ghost" data-copy-url="${escapeAttr(t.gameUrl)}">
+                    URLコピー
+                  </button>
+                </div>
+              ` : `<p class="muted">ゲームURLなし</p>`}
+
+              <p class="muted">
+                会員状態：${statusText(t.status)}
+                ${displayGameStatus ? ` / URL状態：${gameStatusText(displayGameStatus)}` : ""}
+                ${t.gameExpiresAt ? ` / 期限：${formatDate(t.gameExpiresAt)}` : ""}
+                ${t.usedAt ? ` / 使用日：${formatDate(t.usedAt)}` : ""}
+              </p>
+            </div>
+          `;
+        }).join("")}
       </div>
 
       ${renderPager(totalPages, ticketPageIndex, "ticket")}
@@ -504,6 +508,33 @@ function getToken() {
 /* =========================
    表示用テキスト
 ========================= */
+
+function getDisplayGameStatus(ticket) {
+  const status = ticket.gameStatus || "";
+
+  if (!ticket.gameExpiresAt) {
+    return status;
+  }
+
+  const expiresAt = new Date(ticket.gameExpiresAt);
+
+  if (Number.isNaN(expiresAt.getTime())) {
+    return status;
+  }
+
+  const now = new Date();
+  const isExpired = expiresAt.getTime() <= now.getTime();
+
+  if (!isExpired) {
+    return status;
+  }
+
+  if (status === "cleared" || status === "blocked" || status === "expired") {
+    return status;
+  }
+
+  return "expired";
+}
 
 function gameStatusText(status) {
   const map = {
