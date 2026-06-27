@@ -252,3 +252,13 @@ function escapeHtml(str) {
 function escapeAttr(str) {
   return escapeHtml(str);
 }
+
+function requireLoginOrRedirect() {
+  const token = getToken();
+
+  if (token) return true;
+
+  const returnTo = encodeURIComponent(location.href);
+  location.href = `index.html?returnTo=${returnTo}`;
+  return false;
+}
