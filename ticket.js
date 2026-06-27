@@ -39,7 +39,10 @@ async function init() {
 async function api(action, data = {}) {
   const res = await fetch(API_URL, {
     method: "POST",
-    body: JSON.stringify({ action, data }),
+    body: JSON.stringify({
+      action,
+      data,
+    }),
   });
 
   const json = await res.json();
@@ -71,7 +74,15 @@ function renderEvents(events) {
   }
 
   root.innerHTML = events.map((event) => `
-    <article class="card event-card no-image">
+    <article class="card event-card">
+      <div class="event-thumb-wrap">
+        ${
+          event.mainVisualUrl
+            ? `<img class="event-thumb" src="${escapeAttr(event.mainVisualUrl)}" alt="${escapeAttr(event.title)}" loading="lazy" />`
+            : `<div class="event-thumb no-thumb">NO IMAGE</div>`
+        }
+      </div>
+
       <div class="event-info">
         <span class="badge ${event.type === "free" ? "free" : "paid"}">
           ${event.type === "free" ? "無料" : "有料"}
