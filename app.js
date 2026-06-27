@@ -50,6 +50,90 @@ async function init() {
   }
 }
 
+function renderEmailArea(user) {
+  const verified = !!user.emailVerified;
+
+  if ($("emailVerifyCard")) {
+    $("emailVerifyCard").classList.remove("hidden");
+  }
+
+  if ($("emailStatusText")) {
+    $("emailStatusText").textContent = verified
+      ? "メール認証済みです。"
+      : "メール未認証です。チケット発行・スタンプ取得などを利用するには、メール認証を完了してください。";
+  }
+
+  if ($("emailVerifyForm")) {
+    $("emailVerifyForm").classList.toggle("hidden", verified);
+  }
+
+  if ($("campaignMailCard")) {
+    $("campaignMailCard").classList.remove("hidden");
+  }
+
+  if ($("memberCampaignOptIn")) {
+    $("memberCampaignOptIn").checked = !!user.campaignOptIn;
+  }
+}
+
+async function verifyEmailCode() {
+  try {
+    const code = $("emailVerifyCode") ? $("emailVerifyCode").value.trim() : "";
+
+    if (!code) {
+      showMessage("認証コードを入力してください。", "error");
+      return;
+    }
+
+    const res = await api("verifyEmailCode", {
+      token: getToken(),
+      code,
+    });
+
+    currentUser = res.user;
+
+    if ($("emailVerifyCode")) {
+      $("emailVerifyCode").value = "";
+    }
+
+    showMessage(res.message || "メール認証が完了しました。", "ok");
+    await loadMyData();
+  } catch (err) {
+    showMessage(err.message, "error");
+  }
+}
+
+async function resendEmailCode() {
+  try {
+    const res = await api("sendEmailVerificationCode", {
+      token: getToken(),
+    });
+
+    currentUser = res.user;
+
+    showMessage(res.message || "認証コードを再送信しました。", "ok");
+    await loadMyData();
+  } catch (err) {
+    showMessage(err.message, "error");
+  }
+}
+
+async function saveCampaignOptIn() {
+  try {
+    const res = await api("updateCampaignOptIn", {
+      token: getToken(),
+      campaignOptIn: $("memberCampaignOptIn") ? $("memberCampaignOptIn").checked : false,
+    });
+
+    currentUser = res.user;
+
+    showMessage(res.message || "メール配信設定を保存しました。", "ok");
+    await loadMyData();
+  } catch (err) {
+    showMessage(err.message, "error");
+  }
+}
+
 function bindEvents() {
   addClick("loginBtn", login);
   addClick("registerBtn", register);
@@ -57,6 +141,9 @@ function bindEvents() {
   addClick("redeemStampBtn", redeemStamp);
   addClick("startQrBtn", startQr);
   addClick("stopQrBtn", stopQr);
+  addClick("verifyEmailBtn", verifyEmailCode);
+  addClick("resendEmailCodeBtn", resendEmailCode);
+  addClick("saveCampaignOptInBtn", saveCampaignOptIn);
 
   document.querySelectorAll(".tab").forEach((btn) => {
     btn.addEventListener("click", () => switchTab(btn.dataset.tab));
@@ -113,17 +200,18 @@ async function login() {
 async function register() {
   try {
     const res = await api("register", {
-      name: $("registerName").value,
-      email: $("registerEmail").value,
-      password: $("registerPassword").value,
-      termsAgreed: $("termsAgreed").checked,
-      privacyAgreed: $("privacyAgreed").checked,
-    });
+  name: $("registerName").value,
+  email: $("registerEmail").value,
+  password: $("registerPassword").value,
+  termsAgreed: $("termsAgreed").checked,
+  privacyAgreed: $("privacyAgreed").checked,
+  campaignOptIn: $("campaignOptIn") ? $("campaignOptIn").checked : false,
+});
 
     localStorage.setItem(TOKEN_KEY, res.token);
     currentUser = res.user;
 
-    showMessage("会員登録が完了しました。", "ok");
+    showMessage(res.message || "会員登録が完了しました。", "ok");
 
     if (redirectAfterLoginIfNeeded()) {
       return;
@@ -246,6 +334,8 @@ async function loadMyData() {
   if ($("userName")) $("userName").textContent = data.user.name;
   if ($("userEmail")) $("userEmail").textContent = data.user.email;
   if ($("totalPoint")) $("totalPoint").textContent = data.totalPoint;
+  currentUser = data.user;
+renderEmailArea(data.user);
 
   renderTickets(data.tickets || []);
   renderParticipations(data.participations || []);
