@@ -1111,138 +1111,205 @@ svg {
 
 /* =========================
    公演ごとのチケットページ
-   PC配置崩れ修正
-   横に3列で並ぶのを禁止
+   2枚目寄せレイアウト
 ========================= */
 
 #eventSection {
   width: 100% !important;
-  max-width: 1080px !important;
+  max-width: 1180px !important;
   margin: 0 auto !important;
-  display: block !important;
+  display: grid !important;
+  grid-template-columns: 42% 1fr !important;
+  gap: 0 !important;
+  align-items: stretch !important;
+  border: 2px solid #050505 !important;
+  background: #fff !important;
 }
 
-/* eventSection内のカードを横並びにしない */
-#eventSection > * {
-  width: 100% !important;
-  max-width: 100% !important;
-  margin-bottom: 22px !important;
-}
-
-/* タイトルが縦に潰れるのを防ぐ */
-#eventTitle {
-  display: block !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  writing-mode: horizontal-tb !important;
-  word-break: keep-all !important;
-  overflow-wrap: break-word !important;
-  font-size: clamp(34px, 5vw, 72px) !important;
-  line-height: 1.05 !important;
-  letter-spacing: -0.04em !important;
-  margin: 18px 0 !important;
-}
-
-/* メインビジュアルを大きすぎず中央に */
+/* 左側：画像エリア */
 #mainVisual,
 #eventSection .main-visual {
-  display: block !important;
-  width: min(100%, 520px) !important;
-  max-height: 720px !important;
-  margin: 0 auto 24px !important;
-  aspect-ratio: 3 / 4 !important;
+  grid-column: 1 !important;
+  grid-row: 1 / span 20 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 620px !important;
+  max-height: none !important;
+  aspect-ratio: auto !important;
   object-fit: contain !important;
   object-position: center !important;
   background: #050505 !important;
-  border: 2px solid var(--main) !important;
-  box-shadow: 8px 8px 0 #050505 !important;
+  border: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 26px !important;
   position: static !important;
 }
 
-/* ストーリー・注意事項をPCでは2列にする */
+/* 右側全体 */
+#eventTypeText,
+#eventTitle,
+#eventDescription,
 #eventStory,
-#eventNotes {
-  width: 100% !important;
-  min-width: 0 !important;
-  border: 2px solid var(--main) !important;
-  background: #fff !important;
-  padding: 22px !important;
-  box-shadow: 6px 6px 0 #050505 !important;
-  line-height: 1.9 !important;
-}
-
-/* STORY / NOTES の横並び用 */
-@media (min-width: 900px) {
-  #eventStory,
-  #eventNotes {
-    display: block !important;
-  }
-
-  /* STORYとNOTESだけをきれいに並べたい場合の補正 */
-  #eventStory {
-    margin-bottom: 18px !important;
-  }
-
-  #eventNotes {
-    margin-bottom: 18px !important;
-  }
-}
-
-/* チケット発行エリア */
+#eventNotes,
 #freeArea,
 #paidArea,
 #confirmArea,
 #resultArea {
+  grid-column: 2 !important;
   width: 100% !important;
   max-width: 100% !important;
-  border: 2px solid var(--main) !important;
-  background: #fff !important;
-  padding: 20px !important;
-  box-shadow: 6px 6px 0 #050505 !important;
-  margin-bottom: 22px !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
 
-/* 種別ラベル */
+/* 右側の余白 */
+#eventTypeText {
+  margin: 64px 56px 28px !important;
+}
+
+#eventTitle,
+#eventDescription,
+#eventStory,
+#eventNotes,
+#freeArea,
+#paidArea,
+#confirmArea,
+#resultArea {
+  width: calc(100% - 112px) !important;
+  margin-left: 56px !important;
+  margin-right: 56px !important;
+}
+
+/* ラベル */
 #eventTypeText {
   display: inline-flex !important;
   width: fit-content !important;
-  max-width: 100% !important;
-  border: 2px solid var(--main) !important;
-  padding: 8px 12px !important;
+  border: 2px solid #050505 !important;
+  padding: 10px 16px !important;
+  font-size: 14px !important;
   font-weight: 950 !important;
   letter-spacing: .08em !important;
   background: #fff !important;
   color: #050505 !important;
-  box-shadow: 4px 4px 0 #050505 !important;
-  margin-bottom: 12px !important;
+  box-shadow: 5px 5px 0 #050505 !important;
 }
 
-/* 説明文 */
+/* タイトル */
+#eventTitle {
+  font-size: clamp(42px, 5.2vw, 80px) !important;
+  line-height: 1.02 !important;
+  letter-spacing: -0.05em !important;
+  margin-bottom: 24px !important;
+  writing-mode: horizontal-tb !important;
+  word-break: keep-all !important;
+  overflow-wrap: break-word !important;
+}
+
+/* 説明 */
 #eventDescription {
-  width: 100% !important;
-  font-size: 15px !important;
-  line-height: 1.9 !important;
-  border-left: 5px solid var(--main) !important;
-  padding-left: 14px !important;
-  margin-bottom: 22px !important;
+  font-size: 16px !important;
+  line-height: 2 !important;
+  color: #666 !important;
+  border-left: 6px solid #050505 !important;
+  padding-left: 18px !important;
+  margin-bottom: 34px !important;
 }
 
-/* スマホ */
-@media (max-width: 600px) {
-  #eventSection {
-    max-width: none !important;
-  }
+/* STORY / NOTES */
+#eventStory,
+#eventNotes {
+  border: 2px solid #050505 !important;
+  background: #fff !important;
+  padding: 24px !important;
+  box-shadow: none !important;
+  line-height: 1.9 !important;
+  margin-bottom: 26px !important;
+}
 
-  #eventTitle {
-    font-size: 34px !important;
-    line-height: 1.08 !important;
+#eventStory::before {
+  content: "STORY";
+  display: block;
+  font-size: 13px;
+  font-weight: 950;
+  letter-spacing: .18em;
+  color: #666;
+  margin-bottom: 14px;
+}
+
+#eventNotes::before {
+  content: "NOTES";
+  display: block;
+  font-size: 13px;
+  font-weight: 950;
+  letter-spacing: .18em;
+  color: #666;
+  margin-bottom: 14px;
+}
+
+/* チケット欄 */
+#freeArea,
+#paidArea,
+#confirmArea,
+#resultArea {
+  border: 2px solid #050505 !important;
+  background: #fff !important;
+  padding: 24px !important;
+  box-shadow: none !important;
+  margin-bottom: 28px !important;
+}
+
+#ticketCount,
+#paidCode {
+  width: 100% !important;
+  min-height: 48px !important;
+  border: 2px solid #050505 !important;
+  padding: 10px 12px !important;
+  font-size: 16px !important;
+  background: #fff !important;
+}
+
+/* スマホでは1列 */
+@media (max-width: 800px) {
+  #eventSection {
+    display: block !important;
+    border: none !important;
+    background: transparent !important;
   }
 
   #mainVisual,
   #eventSection .main-visual {
     width: 100% !important;
-    max-height: 540px !important;
-    box-shadow: 5px 5px 0 #050505 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 560px !important;
+    aspect-ratio: 3 / 4 !important;
+    padding: 16px !important;
+    border: 2px solid #050505 !important;
+    margin-bottom: 20px !important;
+  }
+
+  #eventTypeText,
+  #eventTitle,
+  #eventDescription,
+  #eventStory,
+  #eventNotes,
+  #freeArea,
+  #paidArea,
+  #confirmArea,
+  #resultArea {
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  #eventTypeText {
+    margin: 0 0 20px !important;
+  }
+
+  #eventTitle {
+    font-size: 36px !important;
+    line-height: 1.08 !important;
   }
 
   #eventStory,
@@ -1251,7 +1318,6 @@ svg {
   #paidArea,
   #confirmArea,
   #resultArea {
-    padding: 15px !important;
-    box-shadow: 4px 4px 0 #050505 !important;
+    padding: 16px !important;
   }
 }
