@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>RIDDLE STORY スタンプ取得</title>
+
+  <link rel="stylesheet" href="style.css?v=stamp1" />
+</head>
+<body>
+  <header class="site-header">
+    <div>
+      <p class="eyebrow">RIDDLE STORY STAMP</p>
+      <h1>スタンプ取得</h1>
+    </div>
+
+    <div class="header-actions">
+      <a href="index.html"><button class="ghost" type="button">会員サイトへ</button></a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p class="eyebrow">STAMP CARD</p>
+      <h2>STAMP</h2>
+      <p id="stampLead">スタンプを確認しています。</p>
+    </section>
+
+    <section class="card">
+      <h2 id="stampTitle">処理中...</h2>
+      <p id="stampMessage" class="muted">少しお待ちください。</p>
+      <div id="stampAction"></div>
+    </section>
+
+    <div id="message" class="message hidden"></div>
+  </main>
+
+  <script src="stamp.js"></script>
+</body>
+</html>
