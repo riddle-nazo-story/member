@@ -1448,3 +1448,69 @@ svg {
     width: 100%;
   }
 }
+
+/* =========================
+   チェックボックス改善
+========================= */
+
+.check {
+  display: grid !important;
+  grid-template-columns: 30px 1fr;
+  gap: 12px;
+  align-items: start;
+  cursor: pointer;
+  font-weight: 800;
+  line-height: 1.7;
+  margin: 14px 0;
+  user-select: none;
+}
+
+.check input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 26px;
+  height: 26px;
+  margin: 4px 0 0;
+  border: 2px solid #050505;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.check input[type="checkbox"]::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  transform: scale(0);
+  transition: transform 0.12s ease;
+  background: #fff;
+  clip-path: polygon(14% 44%, 0 62%, 42% 100%, 100% 18%, 82% 0, 38% 64%);
+}
+
+.check input[type="checkbox"]:checked {
+  background: #050505;
+  box-shadow: 4px 4px 0 #050505;
+  transform: translate(-2px, -2px);
+}
+
+.check input[type="checkbox"]:checked::before {
+  transform: scale(1);
+}
+
+.check input[type="checkbox"]:focus-visible {
+  outline: 3px solid #050505;
+  outline-offset: 3px;
+}
+
+.check:hover input[type="checkbox"] {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 #050505;
+}
+
+.check input[type="checkbox"]:checked:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 #050505;
+}
