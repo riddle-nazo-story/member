@@ -1225,3 +1225,177 @@ svg {
     box-shadow: 4px 4px 0 #050505 !important;
   }
 }
+
+/* =========================
+   公演ごとのチケットページ
+   PC配置修正版
+========================= */
+
+#eventSection {
+  width: 100% !important;
+  max-width: 1120px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  display: grid !important;
+  gap: 18px !important;
+}
+
+/* PCでは左にメインビジュアル、右に情報をきれいに固定 */
+@media (min-width: 900px) {
+  #eventSection {
+    grid-template-columns: minmax(260px, 420px) minmax(0, 1fr) !important;
+    grid-template-areas:
+      "visual type"
+      "visual title"
+      "visual desc"
+      "visual story"
+      "visual notes"
+      "visual free"
+      "visual paid"
+      "visual confirm"
+      "visual result" !important;
+    align-items: start !important;
+  }
+
+  #mainVisual {
+    grid-area: visual !important;
+    width: 100% !important;
+    max-height: 78vh !important;
+    aspect-ratio: 3 / 4 !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    background: #050505 !important;
+    border: 2px solid var(--main) !important;
+    box-shadow: 8px 8px 0 #050505 !important;
+    position: sticky !important;
+    top: 18px !important;
+  }
+
+  #eventTypeText {
+    grid-area: type !important;
+  }
+
+  #eventTitle {
+    grid-area: title !important;
+  }
+
+  #eventDescription {
+    grid-area: desc !important;
+  }
+
+  #eventStory {
+    grid-area: story !important;
+  }
+
+  #eventNotes {
+    grid-area: notes !important;
+  }
+
+  #freeArea {
+    grid-area: free !important;
+  }
+
+  #paidArea {
+    grid-area: paid !important;
+  }
+
+  #confirmArea {
+    grid-area: confirm !important;
+  }
+
+  #resultArea {
+    grid-area: result !important;
+  }
+}
+
+/* スマホでは1列に戻す */
+@media (max-width: 899px) {
+  #eventSection {
+    grid-template-columns: 1fr !important;
+    max-width: none !important;
+  }
+
+  #mainVisual {
+    width: 100% !important;
+    max-height: 520px !important;
+    aspect-ratio: 3 / 4 !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    position: static !important;
+  }
+}
+
+/* 各パーツの見た目調整 */
+#eventTitle {
+  font-size: clamp(30px, 5vw, 64px) !important;
+  line-height: .95 !important;
+  letter-spacing: -0.04em !important;
+  margin: 8px 0 4px !important;
+}
+
+#eventDescription {
+  font-size: 15px !important;
+  line-height: 1.9 !important;
+  border-left: 5px solid var(--main) !important;
+  padding-left: 14px !important;
+}
+
+#eventTypeText {
+  display: inline-flex !important;
+  width: fit-content !important;
+  border: 2px solid var(--main) !important;
+  padding: 8px 12px !important;
+  font-weight: 950 !important;
+  letter-spacing: .08em !important;
+  background: #fff !important;
+  color: #050505 !important;
+  box-shadow: 4px 4px 0 #050505 !important;
+}
+
+#eventStory,
+#eventNotes,
+#freeArea,
+#paidArea,
+#confirmArea,
+#resultArea {
+  width: 100% !important;
+  min-width: 0 !important;
+  border: 2px solid var(--main) !important;
+  background: #fff !important;
+  padding: 18px !important;
+  box-shadow: 6px 6px 0 #050505 !important;
+}
+
+#eventStory::before {
+  content: "STORY";
+  display: block;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: .18em;
+  margin-bottom: 10px;
+}
+
+#eventNotes::before {
+  content: "NOTES";
+  display: block;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: .18em;
+  margin-bottom: 10px;
+}
+
+#eventStory p,
+#eventNotes p {
+  line-height: 1.9 !important;
+  margin: 0 0 10px !important;
+}
+
+#ticketCount,
+#paidCode {
+  width: 100% !important;
+  min-height: 48px !important;
+  border: 2px solid var(--main) !important;
+  padding: 10px 12px !important;
+  font-size: 16px !important;
+  background: #fff !important;
+}
