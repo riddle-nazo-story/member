@@ -7,7 +7,7 @@
   <title>RIDDLE STORY 運営サイト</title>
 
   <link rel="icon" type="image/png" href="favicon.png" />
-<link rel="apple-touch-icon" href="favicon.png" />
+  <link rel="apple-touch-icon" href="favicon.png" />
 
   <link rel="stylesheet" href="admin.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
@@ -42,6 +42,7 @@
         <button class="admin-tab" data-tab="stamps">スタンプ</button>
         <button class="admin-tab" data-tab="tickets">チケット使用</button>
         <button class="admin-tab" data-tab="users">会員一覧</button>
+        <button class="admin-tab" data-tab="mail">メール送信</button>
       </nav>
 
       <section id="admin-tab-events" class="admin-panel">
@@ -217,6 +218,51 @@
           <p class="muted">パスワード情報は表示しません。表示名、メールアドレス、参加数などだけ表示します。</p>
           <div id="usersTable"></div>
         </section>
+      </section>
+
+      <section id="admin-tab-mail" class="admin-panel hidden">
+        <div class="grid two">
+          <section class="card">
+            <h2>希望者へメール送信</h2>
+            <p class="muted">
+              メール認証済み、かつメール配信を希望している会員にだけ送信します。
+            </p>
+
+            <div class="result-box">
+              <strong>送信対象</strong>
+              <p id="mailSubscriberCount" class="muted">確認中...</p>
+            </div>
+
+            <label>
+              テスト送信先メールアドレス
+              <input id="campaignTestEmail" type="email" placeholder="自分のメールアドレス" />
+            </label>
+
+            <label>
+              件名
+              <input id="campaignSubject" type="text" placeholder="例：新作公演のお知らせ" />
+            </label>
+
+            <label>
+              本文
+              <textarea id="campaignBody" placeholder="メール本文を入力してください"></textarea>
+            </label>
+
+            <div class="button-row">
+              <button id="sendCampaignTestBtn" class="ghost" type="button">テスト送信</button>
+              <button id="sendCampaignMailBtn" type="button">希望者に送信する</button>
+            </div>
+
+            <p class="muted">
+              本送信前に、必ずテスト送信で内容を確認してください。
+            </p>
+          </section>
+
+          <section class="card">
+            <h2>送信対象者</h2>
+            <div id="campaignSubscribersTable"></div>
+          </section>
+        </div>
       </section>
     </section>
 
