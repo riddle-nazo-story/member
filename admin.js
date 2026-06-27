@@ -282,17 +282,24 @@ async function generateStamp() {
 
     $("generatedStamp").classList.remove("hidden");
     $("generatedStampCode").textContent = res.stampCode;
+    $("generatedStampCode").textContent = stampUrl;
     if ($("stampName")) $("stampName").value = "";
 
     const qrBox = $("qrBox");
     qrBox.innerHTML = "";
 
     if (window.QRCode) {
-      new QRCode(qrBox, {
-        text: res.stampCode,
-        width: 180,
-        height: 180,
-      });
+      const stampUrl =
+  location.origin +
+  location.pathname.replace("admin.html", "stamp.html") +
+  "?code=" +
+  encodeURIComponent(res.stampCode);
+
+new QRCode(qrBox, {
+  text: stampUrl,
+  width: 180,
+  height: 180,
+});
     } else {
       qrBox.textContent = "QR生成ライブラリの読み込みに失敗しました。コードを手動で使ってください。";
     }
