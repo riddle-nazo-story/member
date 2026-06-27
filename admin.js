@@ -1,5 +1,5 @@
 // GASのWebアプリURL
-const API_URL = "https://script.google.com/macros/s/AKfycbwZJGvGsEXSeMRPNU_jzqTvYyA5yhNbIAR-ZprH0O4Wbl6CeJX6YzWTpXS5_WUPVA45dQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzAAVNMkySPZaIYtVPtpuG4h9DtbhDPpAjy0FvTmwoLiWkN--KCXiiPTMLyKWxqlLeD/exec";
 
 const ADMIN_TOKEN_KEY = "rs_admin_token";
 
@@ -67,6 +67,10 @@ async function initAdmin() {
   addClick("generateStampBtn", generateStamp);
   addClick("useTicketBtn", useTicket);
 
+  // メール送信
+  addClick("sendCampaignTestBtn", sendCampaignTest);
+  addClick("sendCampaignMailBtn", sendCampaignMail);
+
   document.querySelectorAll(".admin-tab").forEach((btn) => {
     btn.addEventListener("click", () => switchAdminTab(btn.dataset.tab));
   });
@@ -123,6 +127,7 @@ async function refreshAdmin() {
   await loadStampCodes();
   await loadTickets();
   await loadUsers();
+  await loadCampaignSubscribers();
 }
 
 async function loadDashboard() {
@@ -131,13 +136,15 @@ async function loadDashboard() {
   });
 
   setHtml("stats", `
-    <div class="stat"><span>会員</span><strong>${data.users}</strong></div>
-    <div class="stat"><span>公演</span><strong>${data.events}</strong></div>
-    <div class="stat"><span>会員券</span><strong>${data.tickets}</strong></div>
-    <div class="stat"><span>URL</span><strong>${data.gameTickets}</strong></div>
-    <div class="stat"><span>有料</span><strong>${data.paidAccess}</strong></div>
-    <div class="stat"><span>スタンプ</span><strong>${data.stampCodes}</strong></div>
-    <div class="stat"><span>取得</span><strong>${data.stampLogs}</strong></div>
+    <div class="stat"><span>会員</span><strong>${escapeHtml(data.users)}</strong></div>
+    <div class="stat"><span>認証済み</span><strong>${escapeHtml(data.emailVerifiedUsers || 0)}</strong></div>
+    <div class="stat"><span>メール希望</span><strong>${escapeHtml(data.campaignSubscribers || 0)}</strong></div>
+    <div class="stat"><span>公演</span><strong>${escapeHtml(data.events)}</strong></div>
+    <div class="stat"><span>会員券</span><strong>${escapeHtml(data.tickets)}</strong></div>
+    <div class="stat"><span>URL</span><strong>${escapeHtml(data.gameTickets)}</strong></div>
+    <div class="stat"><span>有料</span><strong>${escapeHtml(data.paidAccess)}</strong></div>
+    <div class="stat"><span>スタンプ</span><strong>${escapeHtml(data.stampCodes)}</strong></div>
+    <div class="stat"><span>取得</span><strong>${escapeHtml(data.stampLogs)}</strong></div>
   `);
 }
 
@@ -535,6 +542,8 @@ function renderUsersTable(users) {
           <tr>
             <th>表示名</th>
             <th>メール</th>
+            <th>メール認証</th>
+            <th>メール希望</th>
             <th>権限</th>
             <th>チケット</th>
             <th>使用済み</th>
@@ -548,6 +557,8 @@ function renderUsersTable(users) {
             <tr>
               <td>${escapeHtml(u.name)}</td>
               <td>${escapeHtml(u.email)}</td>
+              <td>${u.emailVerified ? "認証済み" : "未認証"}</td>
+              <td>${u.campaignOptIn ? "希望する" : "希望しない"}</td>
               <td>${escapeHtml(u.role)}</td>
               <td>${escapeHtml(u.ticketsCount)}</td>
               <td>${escapeHtml(u.usedTicketsCount)}</td>
@@ -561,6 +572,137 @@ function renderUsersTable(users) {
     </div>
   `;
 }
+
+/***********************
+ * Campaign mail
+ ***********************/
+
+async function loadCampaignSubscribers() {
+  try {
+    const users = await api("adminListCampaignSubscribers", {
+      token: getAdminToken(),
+    });
+
+    setText("mailSubscriberCount", users.length + "人");
+
+    const root = $("campaignSubscribersTable");
+    if (!root) return;
+
+    if (!users.length) {
+      root.innerHTML = `<p class="muted">送信対象者はいません。</p>`;
+      return;
+    }
+
+    root.innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>表示名</th>
+              <th>メール</th>
+              <th>認証日時</th>
+              <th>希望日時</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${users.map((u) => `
+              <tr>
+                <td>${escapeHtml(u.name)}</td>
+                <td>${escapeHtml(u.email)}</td>
+                <td>${formatDate(u.emailVerifiedAt)}</td>
+                <td>${formatDate(u.campaignOptInAt || u.createdAt)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  } catch (err) {
+    setText("mailSubscriberCount", "取得できませんでした");
+    const root = $("campaignSubscribersTable");
+    if (root) {
+      root.innerHTML = `<p class="muted">送信対象者を取得できませんでした。</p>`;
+    }
+  }
+}
+
+function getCampaignMailPayload(testMode) {
+  return {
+    token: getAdminToken(),
+    subject: getValue("campaignSubject"),
+    body: getValue("campaignBody"),
+    testMode: !!testMode,
+    testEmail: getValue("campaignTestEmail"),
+  };
+}
+
+async function sendCampaignTest() {
+  try {
+    const payload = getCampaignMailPayload(true);
+
+    if (!payload.testEmail) {
+      showMessage("テスト送信先メールアドレスを入力してください。", "error");
+      return;
+    }
+
+    if (!payload.subject || !payload.body) {
+      showMessage("件名と本文を入力してください。", "error");
+      return;
+    }
+
+    setDisabled("sendCampaignTestBtn", true);
+
+    await api("adminSendCampaignMail", payload);
+
+    showMessage("テストメールを送信しました。");
+  } catch (err) {
+    showMessage(err.message, "error");
+  } finally {
+    setDisabled("sendCampaignTestBtn", false);
+  }
+}
+
+async function sendCampaignMail() {
+  try {
+    const payload = getCampaignMailPayload(false);
+
+    if (!payload.subject || !payload.body) {
+      showMessage("件名と本文を入力してください。", "error");
+      return;
+    }
+
+    const ok = confirm(
+      "メール配信希望者全員に送信します。\n\n" +
+      "本送信前にテスト送信は確認しましたか？\n\n" +
+      "この操作は取り消せません。"
+    );
+
+    if (!ok) return;
+
+    setDisabled("sendCampaignMailBtn", true);
+    setDisabled("sendCampaignTestBtn", true);
+
+    const res = await api("adminSendCampaignMail", payload);
+
+    if (res.error) {
+      showMessage((res.message || "メールを送信しました。") + " 一部エラーがあります: " + res.error, "error");
+    } else {
+      showMessage(res.message || "メールを送信しました。");
+    }
+
+    await loadDashboard();
+    await loadCampaignSubscribers();
+  } catch (err) {
+    showMessage(err.message, "error");
+  } finally {
+    setDisabled("sendCampaignMailBtn", false);
+    setDisabled("sendCampaignTestBtn", false);
+  }
+}
+
+/***********************
+ * UI
+ ***********************/
 
 function switchAdminTab(tab) {
   document.querySelectorAll(".admin-tab").forEach((btn) => {
@@ -610,7 +752,7 @@ function statusText(status) {
     cancelled: "キャンセル済み",
   };
 
-  return map[status] || status;
+  return map[status] || status || "";
 }
 
 function limitTypeText(type) {
@@ -620,7 +762,7 @@ function limitTypeText(type) {
     multi: "指定回数まで",
   };
 
-  return map[type] || type;
+  return map[type] || type || "";
 }
 
 function showMessage(text, type = "ok") {
