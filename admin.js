@@ -5,18 +5,67 @@ const ADMIN_TOKEN_KEY = "rs_admin_token";
 
 const $ = (id) => document.getElementById(id);
 
+// 要素がなくても止まらないようにする補助関数
+function addClick(id, fn) {
+  const el = $(id);
+  if (!el) return;
+  el.addEventListener("click", fn);
+}
+
+function setValue(id, value) {
+  const el = $(id);
+  if (!el) return;
+  el.value = value ?? "";
+}
+
+function getValue(id, fallback = "") {
+  const el = $(id);
+  if (!el) return fallback;
+  return el.value;
+}
+
+function setDisabled(id, disabled) {
+  const el = $(id);
+  if (!el) return;
+  el.disabled = disabled;
+}
+
+function setText(id, text) {
+  const el = $(id);
+  if (!el) return;
+  el.textContent = text;
+}
+
+function setHtml(id, html) {
+  const el = $(id);
+  if (!el) return;
+  el.innerHTML = html;
+}
+
+function addHidden(id) {
+  const el = $(id);
+  if (!el) return;
+  el.classList.add("hidden");
+}
+
+function removeHidden(id) {
+  const el = $(id);
+  if (!el) return;
+  el.classList.remove("hidden");
+}
+
 let adminEvents = [];
 let editingEventId = null;
 
 document.addEventListener("DOMContentLoaded", initAdmin);
 
 async function initAdmin() {
-  $("adminLoginBtn").addEventListener("click", adminLogin);
-  $("adminLogoutBtn").addEventListener("click", adminLogout);
-  $("saveEventBtn").addEventListener("click", saveEvent);
-  $("cancelEditEventBtn").addEventListener("click", cancelEventEdit);
-  $("generateStampBtn").addEventListener("click", generateStamp);
-  $("useTicketBtn").addEventListener("click", useTicket);
+  addClick("adminLoginBtn", adminLogin);
+  addClick("adminLogoutBtn", adminLogout);
+  addClick("saveEventBtn", saveEvent);
+  addClick("cancelEditEventBtn", cancelEventEdit);
+  addClick("generateStampBtn", generateStamp);
+  addClick("useTicketBtn", useTicket);
 
   document.querySelectorAll(".admin-tab").forEach((btn) => {
     btn.addEventListener("click", () => switchAdminTab(btn.dataset.tab));
@@ -51,7 +100,7 @@ async function api(action, data = {}) {
 async function adminLogin() {
   try {
     const res = await api("adminLogin", {
-      password: $("adminPassword").value,
+      password: getValue("adminPassword"),
     });
 
     localStorage.setItem(ADMIN_TOKEN_KEY, res.token);
@@ -81,7 +130,7 @@ async function loadDashboard() {
     token: getAdminToken(),
   });
 
-  $("stats").innerHTML = `
+  setHtml("stats", `
     <div class="stat"><span>会員</span><strong>${data.users}</strong></div>
     <div class="stat"><span>公演</span><strong>${data.events}</strong></div>
     <div class="stat"><span>会員券</span><strong>${data.tickets}</strong></div>
@@ -89,7 +138,7 @@ async function loadDashboard() {
     <div class="stat"><span>有料</span><strong>${data.paidAccess}</strong></div>
     <div class="stat"><span>スタンプ</span><strong>${data.stampCodes}</strong></div>
     <div class="stat"><span>取得</span><strong>${data.stampLogs}</strong></div>
-  `;
+  `);
 }
 
 async function loadEvents() {
@@ -103,6 +152,7 @@ async function loadEvents() {
 
 function renderEventSelect(events) {
   const select = $("stampEventId");
+  if (!select) return;
 
   if (!events.length) {
     select.innerHTML = `<option value="">公演がありません</option>`;
@@ -116,6 +166,7 @@ function renderEventSelect(events) {
 
 function renderEventsTable(events) {
   const root = $("eventsTable");
+  if (!root) return;
 
   if (!events.length) {
     root.innerHTML = `<p>登録済み公演はありません。</p>`;
@@ -187,26 +238,28 @@ function startEventEdit(eventId) {
 
   editingEventId = eventId;
 
-  $("eventFormTitle").textContent = "公演編集";
-  $("eventId").value = event.eventId;
-  $("eventId").disabled = true;
-  $("eventTitle").value = event.title || "";
-  $("eventType").value = event.type || "free";
-  $("eventStatus").value = event.status || "public";
-  $("eventShopUrl").value = event.shopUrl || "";
-  $("eventPaidCode").value = event.paidCode || "";
-  $("eventPlayUrl").value = event.playUrl || "";
-  $("eventGameId").value = event.gameId || "";
-  $("eventGameBaseUrl").value = event.gameBaseUrl || "";
-  $("eventMainVisualUrl").value = event.mainVisualUrl || "";
-  $("eventStory").value = event.story || "";
-  $("eventNotes").value = event.notes || "";
-  $("eventTicketValidHours").value = event.ticketValidHours || "24";
-  $("eventMaxFreeTickets").value = event.maxFreeTickets || "1";
-  $("eventDescription").value = event.description || "";
+  setText("eventFormTitle", "公演編集");
 
-  $("saveEventBtn").textContent = "公演を更新";
-  $("cancelEditEventBtn").classList.remove("hidden");
+  setValue("eventId", event.eventId);
+  setDisabled("eventId", true);
+
+  setValue("eventTitle", event.title || "");
+  setValue("eventType", event.type || "free");
+  setValue("eventStatus", event.status || "public");
+  setValue("eventShopUrl", event.shopUrl || "");
+  setValue("eventPaidCode", event.paidCode || "");
+  setValue("eventPlayUrl", event.playUrl || "");
+  setValue("eventGameId", event.gameId || "");
+  setValue("eventGameBaseUrl", event.gameBaseUrl || "");
+  setValue("eventMainVisualUrl", event.mainVisualUrl || "");
+  setValue("eventStory", event.story || "");
+  setValue("eventNotes", event.notes || "");
+  setValue("eventTicketValidHours", event.ticketValidHours || "24");
+  setValue("eventMaxFreeTickets", event.maxFreeTickets || "1");
+  setValue("eventDescription", event.description || "");
+
+  setText("saveEventBtn", "公演を更新");
+  removeHidden("cancelEditEventBtn");
 
   switchAdminTab("events");
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -221,21 +274,21 @@ async function saveEvent() {
   try {
     const payload = {
       token: getAdminToken(),
-      eventId: $("eventId").value,
-      title: $("eventTitle").value,
-      type: $("eventType").value,
-      status: $("eventStatus").value,
-      shopUrl: $("eventShopUrl").value,
-      paidCode: $("eventPaidCode").value,
-      playUrl: $("eventPlayUrl").value,
-      gameId: $("eventGameId").value,
-      gameBaseUrl: $("eventGameBaseUrl").value,
-      mainVisualUrl: $("eventMainVisualUrl").value,
-      story: $("eventStory").value,
-      notes: $("eventNotes").value,
-      ticketValidHours: $("eventTicketValidHours").value,
-      maxFreeTickets: $("eventMaxFreeTickets").value,
-      description: $("eventDescription").value,
+      eventId: getValue("eventId"),
+      title: getValue("eventTitle"),
+      type: getValue("eventType", "free"),
+      status: getValue("eventStatus", "public"),
+      shopUrl: getValue("eventShopUrl"),
+      paidCode: getValue("eventPaidCode"),
+      playUrl: getValue("eventPlayUrl"),
+      gameId: getValue("eventGameId"),
+      gameBaseUrl: getValue("eventGameBaseUrl"),
+      mainVisualUrl: getValue("eventMainVisualUrl"),
+      story: getValue("eventStory"),
+      notes: getValue("eventNotes"),
+      ticketValidHours: getValue("eventTicketValidHours", "24"),
+      maxFreeTickets: getValue("eventMaxFreeTickets", "1"),
+      description: getValue("eventDescription"),
     };
 
     if (editingEventId) {
@@ -256,37 +309,39 @@ async function saveEvent() {
 function clearEventForm() {
   editingEventId = null;
 
-  $("eventFormTitle").textContent = "公演登録";
-  $("eventId").value = "";
-  $("eventId").disabled = false;
-  $("eventTitle").value = "";
-  $("eventType").value = "free";
-  $("eventStatus").value = "public";
-  $("eventShopUrl").value = "";
-  $("eventPaidCode").value = "";
-  $("eventPlayUrl").value = "";
-  $("eventGameId").value = "";
-  $("eventGameBaseUrl").value = "";
-  $("eventMainVisualUrl").value = "";
-  $("eventStory").value = "";
-  $("eventNotes").value = "";
-  $("eventTicketValidHours").value = "24";
-  $("eventMaxFreeTickets").value = "1";
-  $("eventDescription").value = "";
+  setText("eventFormTitle", "公演登録");
 
-  $("saveEventBtn").textContent = "公演を登録";
-  $("cancelEditEventBtn").classList.add("hidden");
+  setValue("eventId", "");
+  setDisabled("eventId", false);
+
+  setValue("eventTitle", "");
+  setValue("eventType", "free");
+  setValue("eventStatus", "public");
+  setValue("eventShopUrl", "");
+  setValue("eventPaidCode", "");
+  setValue("eventPlayUrl", "");
+  setValue("eventGameId", "");
+  setValue("eventGameBaseUrl", "");
+  setValue("eventMainVisualUrl", "");
+  setValue("eventStory", "");
+  setValue("eventNotes", "");
+  setValue("eventTicketValidHours", "24");
+  setValue("eventMaxFreeTickets", "1");
+  setValue("eventDescription", "");
+
+  setText("saveEventBtn", "公演を登録");
+  addHidden("cancelEditEventBtn");
 }
 
 async function generateStamp() {
   try {
     const res = await api("adminGenerateStampCode", {
       token: getAdminToken(),
-      eventId: $("stampEventId").value,
-      stampName: $("stampName") ? $("stampName").value : "",
-      point: $("stampPoint").value,
-      limitType: $("stampLimitType").value,
-      maxUses: $("stampMaxUses").value,
+      eventId: getValue("stampEventId"),
+      stampName: getValue("stampName"),
+      point: getValue("stampPoint"),
+      limitType: getValue("stampLimitType"),
+      maxUses: getValue("stampMaxUses"),
     });
 
     const stampPageUrl = new URL("stamp.html", location.href);
@@ -294,28 +349,28 @@ async function generateStamp() {
 
     const stampUrl = stampPageUrl.toString();
 
-    $("generatedStamp").classList.remove("hidden");
-    $("generatedStampCode").textContent = stampUrl;
+    removeHidden("generatedStamp");
+    setText("generatedStampCode", stampUrl);
 
-    if ($("stampName")) {
-      $("stampName").value = "";
-    }
+    setValue("stampName", "");
 
     const qrBox = $("qrBox");
-    qrBox.innerHTML = "";
+    if (qrBox) {
+      qrBox.innerHTML = "";
 
-    if (window.QRCode) {
-      new QRCode(qrBox, {
-        text: stampUrl,
-        width: 180,
-        height: 180,
-      });
-    } else {
-      qrBox.innerHTML = `
-        <p>QR生成ライブラリの読み込みに失敗しました。</p>
-        <p>下のURLをコピーして使ってください。</p>
-        <p class="code">${escapeHtml(stampUrl)}</p>
-      `;
+      if (window.QRCode) {
+        new QRCode(qrBox, {
+          text: stampUrl,
+          width: 180,
+          height: 180,
+        });
+      } else {
+        qrBox.innerHTML = `
+          <p>QR生成ライブラリの読み込みに失敗しました。</p>
+          <p>下のURLをコピーして使ってください。</p>
+          <p class="code">${escapeHtml(stampUrl)}</p>
+        `;
+      }
     }
 
     showMessage("スタンプURLを生成しました。");
@@ -335,6 +390,7 @@ async function loadStampCodes() {
 
 function renderStampTable(stamps) {
   const root = $("stampTable");
+  if (!root) return;
 
   if (!stamps.length) {
     root.innerHTML = `<p>スタンプコードはありません。</p>`;
@@ -379,13 +435,13 @@ async function useTicket() {
   try {
     const res = await api("adminUseTicket", {
       token: getAdminToken(),
-      ticketCode: $("useTicketCode").value,
+      ticketCode: getValue("useTicketCode"),
     });
 
-    $("useTicketCode").value = "";
+    setValue("useTicketCode", "");
 
-    $("usedTicketResult").classList.remove("hidden");
-    $("usedTicketResult").innerHTML = `
+    removeHidden("usedTicketResult");
+    setHtml("usedTicketResult", `
       <h3>${res.alreadyUsed ? "すでに使用済みです" : "使用済みにしました"}</h3>
       <p>公演：${escapeHtml(res.ticket.eventTitle || "")}</p>
       <p>会員：${escapeHtml(res.ticket.userName || "")}${res.ticket.userEmail ? " / " + escapeHtml(res.ticket.userEmail) : ""}</p>
@@ -393,7 +449,7 @@ async function useTicket() {
       ${res.ticket.gameUrl ? `<p>ゲームURL：<span class="code">${escapeHtml(res.ticket.gameUrl)}</span></p><p><a href="${escapeAttr(res.ticket.gameUrl)}" target="_blank" rel="noopener">ゲームURLを開く</a></p>` : ""}
       ${res.ticket.gameStatus ? `<p>ゲーム状態：${gameStatusText(res.ticket.gameStatus)}</p>` : ""}
       <p>処理日時：${formatDate(res.ticket.usedAt)}</p>
-    `;
+    `);
 
     showMessage(res.message || (res.alreadyUsed ? "このチケットはすでに使用済みです。" : "チケットを使用済みにしました。"));
     await refreshAdmin();
@@ -412,6 +468,7 @@ async function loadTickets() {
 
 function renderTicketsTable(tickets) {
   const root = $("ticketsTable");
+  if (!root) return;
 
   if (!tickets.length) {
     root.innerHTML = `<p>チケットはまだありません。</p>`;
@@ -464,6 +521,7 @@ async function loadUsers() {
 
 function renderUsersTable(users) {
   const root = $("usersTable");
+  if (!root) return;
 
   if (!users.length) {
     root.innerHTML = `<p>会員はまだいません。</p>`;
@@ -513,19 +571,19 @@ function switchAdminTab(tab) {
     panel.classList.add("hidden");
   });
 
-  $("admin-tab-" + tab).classList.remove("hidden");
+  removeHidden("admin-tab-" + tab);
 }
 
 function showAdminLogin() {
-  $("adminLoginSection").classList.remove("hidden");
-  $("adminMainSection").classList.add("hidden");
-  $("adminLogoutBtn").classList.add("hidden");
+  removeHidden("adminLoginSection");
+  addHidden("adminMainSection");
+  addHidden("adminLogoutBtn");
 }
 
 function showAdminMain() {
-  $("adminLoginSection").classList.add("hidden");
-  $("adminMainSection").classList.remove("hidden");
-  $("adminLogoutBtn").classList.remove("hidden");
+  addHidden("adminLoginSection");
+  removeHidden("adminMainSection");
+  removeHidden("adminLogoutBtn");
 }
 
 function getAdminToken() {
