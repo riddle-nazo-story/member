@@ -6,7 +6,7 @@
 
   <title>RIDDLE STORY チケットページ</title>
 
-  <link rel="stylesheet" href="style.css?v=layout-final2" />
+  <link rel="stylesheet" href="style.css?v=event-box-split1" />
 </head>
 <body>
   <header class="site-header">
@@ -36,79 +36,77 @@
     </section>
 
     <section id="eventSection" class="event-page hidden">
-      <div class="event-layout">
-        <div class="event-visual-pane">
+      <div class="event-top-layout">
+        <section class="event-visual-box">
           <img id="mainVisual" class="main-visual hidden" alt="公演メインビジュアル" />
-        </div>
+        </section>
 
-        <div class="event-detail-pane">
+        <section class="event-summary-box">
           <p id="eventTypeText" class="event-type-label">TICKET</p>
-
           <h2 id="eventTitle">---</h2>
-
           <p id="eventDescription" class="muted"></p>
-
-          <section class="event-info-box">
-            <h2>ストーリー</h2>
-            <div id="eventStory" class="text-block muted"></div>
-          </section>
-
-          <section class="event-info-box">
-            <h2>注意事項</h2>
-            <div id="eventNotes" class="text-block muted"></div>
-          </section>
-
-          <section class="ticket-box">
-            <h2>チケット</h2>
-
-            <div id="freeArea" class="hidden">
-              <p class="muted">発行枚数を選択し、確認画面へ進んでください。</p>
-
-              <label>
-                チケット枚数
-                <select id="ticketCount"></select>
-              </label>
-
-              <button id="showConfirmBtn" type="button">確認画面へ</button>
-            </div>
-
-            <div id="paidArea" class="hidden">
-              <p class="muted">ショップで購入後、表示されたコードを入力してください。</p>
-
-              <a id="shopLink" class="game-link" href="#" target="_blank" rel="noopener">
-                ショップで購入する
-              </a>
-
-              <label>
-                購入後コード
-                <input id="paidCode" type="text" placeholder="購入後に表示されたコード" />
-              </label>
-
-              <button id="showPaidConfirmBtn" type="button">確認画面へ</button>
-            </div>
-          </section>
-
-          <section id="confirmArea" class="ticket-box hidden">
-            <h2>確認画面</h2>
-            <div id="confirmText" class="text-block"></div>
-
-            <div class="button-row">
-              <button id="confirmIssueBtn" type="button">この内容で確定する</button>
-              <button id="backBtn" class="ghost" type="button">戻る</button>
-            </div>
-          </section>
-
-          <section id="resultArea" class="ticket-box hidden">
-            <h2>発行結果</h2>
-            <div id="resultList"></div>
-          </section>
-        </div>
+        </section>
       </div>
+
+      <section class="event-info-box">
+        <h2>ストーリー</h2>
+        <div id="eventStory" class="text-block muted"></div>
+      </section>
+
+      <section class="event-info-box">
+        <h2>注意事項</h2>
+        <div id="eventNotes" class="text-block muted"></div>
+      </section>
+
+      <section class="ticket-box">
+        <h2>チケット</h2>
+
+        <div id="freeArea" class="hidden">
+          <p class="muted">発行枚数を選択し、確認画面へ進んでください。</p>
+
+          <label>
+            チケット枚数
+            <select id="ticketCount"></select>
+          </label>
+
+          <button id="showConfirmBtn" type="button">確認画面へ</button>
+        </div>
+
+        <div id="paidArea" class="hidden">
+          <p class="muted">ショップで購入後、表示されたコードを入力してください。</p>
+
+          <a id="shopLink" class="game-link" href="#" target="_blank" rel="noopener">
+            ショップで購入する
+          </a>
+
+          <label>
+            購入後コード
+            <input id="paidCode" type="text" placeholder="購入後に表示されたコード" />
+          </label>
+
+          <button id="showPaidConfirmBtn" type="button">確認画面へ</button>
+        </div>
+      </section>
+
+      <section id="confirmArea" class="ticket-box hidden">
+        <h2>確認画面</h2>
+        <div id="confirmText" class="text-block"></div>
+
+        <div class="button-row">
+          <button id="confirmIssueBtn" type="button">この内容で確定する</button>
+          <button id="backBtn" class="ghost" type="button">戻る</button>
+        </div>
+      </section>
+
+      <section id="resultArea" class="ticket-box hidden">
+        <h2>発行結果</h2>
+        <div id="resultList"></div>
+      </section>
     </section>
 
     <div id="message" class="message hidden"></div>
   </main>
 
-  <script src="ticket-event.js?v=layout-final2"></script>
+  <script src="ticket-event.js?v=event-box-split1"></script>
 </body>
 </html>
