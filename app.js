@@ -3,6 +3,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwZJGvGsEXSeMRPNU_jzqTv
 
 const TOKEN_KEY = "rs_member_token";
 const $ = (id) => document.getElementById(id);
+const RETURN_TO_KEY = "rs_return_to";
 
 let currentUser = null;
 let qrScanner = null;
@@ -11,6 +12,12 @@ let qrBusy = false;
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
+    const params = new URLSearchParams(location.search);
+  const returnTo = params.get("returnTo");
+
+  if (returnTo) {
+    sessionStorage.setItem(RETURN_TO_KEY, returnTo);
+  }
   bindEvents();
 
   const token = getToken();
@@ -66,8 +73,13 @@ async function login() {
     currentUser = res.user;
 
     showMessage("ログインしました。", "ok");
-    showMember();
-    await loadMyData();
+
+if (redirectAfterLoginIfNeeded()) {
+  return;
+}
+
+showMember();
+await loadMyData();
   } catch (err) {
     showMessage(err.message, "error");
   }
@@ -87,8 +99,13 @@ async function register() {
     currentUser = res.user;
 
     showMessage("会員登録が完了しました。", "ok");
-    showMember();
-    await loadMyData();
+
+if (redirectAfterLoginIfNeeded()) {
+  return;
+}
+
+showMember();
+await loadMyData();
   } catch (err) {
     showMessage(err.message, "error");
   }
@@ -333,3 +350,13 @@ function escapeHtml(str) {
 }
 
 function escapeAttr(str) { return escapeHtml(str); }
+
+function redirectAfterLoginIfNeeded() {
+  const returnTo = sessionStorage.getItem(RETURN_TO_KEY);
+
+  if (!returnTo) return false;
+
+  sessionStorage.removeItem(RETURN_TO_KEY);
+  location.href = returnTo;
+  return true;
+}
