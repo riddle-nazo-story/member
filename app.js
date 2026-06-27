@@ -283,22 +283,55 @@ function renderParticipations(list) {
 function renderStamps(stamps) {
   const root = $("myStamps");
 
-  if (!stamps.length) {
-    root.innerHTML = `<p class="muted">まだスタンプはありません。</p>`;
+  if (!root) return;
+
+  if (!stamps || !stamps.length) {
+    root.innerHTML = `<p class="muted">まだスタンプ履歴はありません。</p>`;
     return;
   }
 
-  root.innerHTML = `
-    <div class="mini-list">
-      ${stamps.map((s) => `
-        <div class="mini-item">
-          <strong>${escapeHtml(s.eventTitle)}</strong>
-          <p>${Number(s.point)} pt</p>
-          <p class="muted">${formatDate(s.createdAt)}</p>
-        </div>
-      `).join("")}
-    </div>
-  `;
+  const grouped = {};
+
+  stamps.forEach((stamp) => {
+    const eventTitle = stamp.eventTitle || stamp.title || "未分類";
+
+    if (!grouped[eventTitle]) {
+      grouped[eventTitle] = [];
+    }
+
+    grouped[eventTitle].push(stamp);
+  });
+
+  root.innerHTML = Object.keys(grouped).map((eventTitle) => {
+    const list = grouped[eventTitle];
+
+    return `
+      <div class="mini-item">
+        <h3>${escapeHtml(eventTitle)}</h3>
+
+        <ol class="stamp-history-list">
+          ${list.map((stamp, index) => `
+            <li>
+              <div class="stamp-history-row">
+                <span class="stamp-number">${index + 1}.</span>
+
+                <div class="stamp-history-body">
+                  <strong>${escapeHtml(stamp.stampName || stamp.eventTitle || "スタンプ")}</strong>
+
+                  <p class="muted">
+                    ${stamp.point ? `+${escapeHtml(stamp.point)}pt` : ""}
+                    ${stamp.createdAt ? ` / 取得日：${formatDate(stamp.createdAt)}` : ""}
+                    ${stamp.usedAt ? ` / 取得日：${formatDate(stamp.usedAt)}` : ""}
+                    ${stamp.redeemedAt ? ` / 取得日：${formatDate(stamp.redeemedAt)}` : ""}
+                  </p>
+                </div>
+              </div>
+            </li>
+          `).join("")}
+        </ol>
+      </div>
+    `;
+  }).join("");
 }
 
 function switchTab(tab) {
