@@ -10,11 +10,15 @@ let currentUser = null;
 let qrScanner = null;
 let qrBusy = false;
 
+// ページ切り替え用
 let ticketPageIndex = 0;
-let ticketGroupsCache = [];
+let ticketItemsCache = [];
 
 let stampPageIndex = 0;
-let stampGroupsCache = [];
+let stampItemsCache = [];
+
+const TICKETS_PER_PAGE = 3;
+const STAMPS_PER_PAGE = 5;
 
 document.addEventListener("DOMContentLoaded", init);
 
@@ -248,38 +252,24 @@ async function loadMyData() {
   renderStamps(data.stamps || []);
 }
 
+/* =========================
+   ゲームURL：3件ずつ表示
+========================= */
+
 function renderTickets(tickets) {
   const root = $("myTickets");
 
   if (!root) return;
 
   if (!tickets || !tickets.length) {
-    ticketGroupsCache = [];
+    ticketItemsCache = [];
     ticketPageIndex = 0;
     root.innerHTML = `<p class="muted">まだチケットはありません。チケット購入サイトから発行してください。</p>`;
     return;
   }
 
-  const grouped = {};
-
-  tickets.forEach((ticket) => {
-    const eventTitle = ticket.eventTitle || ticket.eventId || "未分類";
-
-    if (!grouped[eventTitle]) {
-      grouped[eventTitle] = [];
-    }
-
-    grouped[eventTitle].push(ticket);
-  });
-
-  ticketGroupsCache = Object.keys(grouped).map((eventTitle) => ({
-    eventTitle,
-    tickets: grouped[eventTitle],
-  }));
-
-  if (ticketPageIndex >= ticketGroupsCache.length) {
-    ticketPageIndex = 0;
-  }
+  ticketItemsCache = tickets;
+  ticketPageIndex = 0;
 
   renderTicketPage();
 }
@@ -289,26 +279,25 @@ function renderTicketPage() {
 
   if (!root) return;
 
-  const group = ticketGroupsCache[ticketPageIndex];
-
-  if (!group) {
-    root.innerHTML = `<p class="muted">まだチケットはありません。</p>`;
-    return;
-  }
+  const totalPages = Math.ceil(ticketItemsCache.length / TICKETS_PER_PAGE);
+  const start = ticketPageIndex * TICKETS_PER_PAGE;
+  const pageTickets = ticketItemsCache.slice(start, start + TICKETS_PER_PAGE);
 
   root.innerHTML = `
     <div class="mini-item paged-ticket-box">
       <div class="page-head">
         <div>
           <p class="eyebrow">GAME URL</p>
-          <h3>${escapeHtml(group.eventTitle)}</h3>
+          <h3>発行済みゲームURL</h3>
         </div>
-        <p class="muted">${ticketPageIndex + 1} / ${ticketGroupsCache.length}</p>
+        <p class="muted">${ticketPageIndex + 1} / ${totalPages}</p>
       </div>
 
       <div class="ticket-page-list">
-        ${group.tickets.map((t) => `
+        ${pageTickets.map((t) => `
           <div class="ticket-page-item">
+            <strong>${escapeHtml(t.eventTitle || t.eventId || "公演名なし")}</strong>
+
             ${t.gameUrl ? `
               <div class="button-row">
                 <a href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener" class="game-link">
@@ -319,7 +308,7 @@ function renderTicketPage() {
                   URLコピー
                 </button>
               </div>
-            ` : `<span class="muted">ゲームURLなし</span>`}
+            ` : `<p class="muted">ゲームURLなし</p>`}
 
             <p class="muted">
               会員状態：${statusText(t.status)}
@@ -331,7 +320,7 @@ function renderTicketPage() {
         `).join("")}
       </div>
 
-      ${renderPager(ticketGroupsCache.length, ticketPageIndex, "ticket")}
+      ${renderPager(totalPages, ticketPageIndex, "ticket")}
     </div>
   `;
 
@@ -346,6 +335,10 @@ function renderTicketPage() {
     });
   });
 }
+
+/* =========================
+   参加済み公演
+========================= */
 
 function renderParticipations(list) {
   const root = $("myParticipations");
@@ -369,38 +362,24 @@ function renderParticipations(list) {
   `;
 }
 
+/* =========================
+   スタンプ履歴：5件ずつ表示
+========================= */
+
 function renderStamps(stamps) {
   const root = $("myStamps");
 
   if (!root) return;
 
   if (!stamps || !stamps.length) {
-    stampGroupsCache = [];
+    stampItemsCache = [];
     stampPageIndex = 0;
     root.innerHTML = `<p class="muted">まだスタンプ履歴はありません。</p>`;
     return;
   }
 
-  const grouped = {};
-
-  stamps.forEach((stamp) => {
-    const eventTitle = stamp.eventTitle || stamp.title || "未分類";
-
-    if (!grouped[eventTitle]) {
-      grouped[eventTitle] = [];
-    }
-
-    grouped[eventTitle].push(stamp);
-  });
-
-  stampGroupsCache = Object.keys(grouped).map((eventTitle) => ({
-    eventTitle,
-    stamps: grouped[eventTitle],
-  }));
-
-  if (stampPageIndex >= stampGroupsCache.length) {
-    stampPageIndex = 0;
-  }
+  stampItemsCache = stamps;
+  stampPageIndex = 0;
 
   renderStampPage();
 }
@@ -410,25 +389,22 @@ function renderStampPage() {
 
   if (!root) return;
 
-  const group = stampGroupsCache[stampPageIndex];
-
-  if (!group) {
-    root.innerHTML = `<p class="muted">まだスタンプ履歴はありません。</p>`;
-    return;
-  }
+  const totalPages = Math.ceil(stampItemsCache.length / STAMPS_PER_PAGE);
+  const start = stampPageIndex * STAMPS_PER_PAGE;
+  const pageStamps = stampItemsCache.slice(start, start + STAMPS_PER_PAGE);
 
   root.innerHTML = `
     <div class="mini-item paged-stamp-box">
       <div class="page-head">
         <div>
           <p class="eyebrow">STAMP HISTORY</p>
-          <h3>${escapeHtml(group.eventTitle)}</h3>
+          <h3>スタンプ履歴</h3>
         </div>
-        <p class="muted">${stampPageIndex + 1} / ${stampGroupsCache.length}</p>
+        <p class="muted">${stampPageIndex + 1} / ${totalPages}</p>
       </div>
 
       <div class="stamp-page-list">
-        ${group.stamps.map((stamp) => {
+        ${pageStamps.map((stamp) => {
           const acquiredAt = stamp.redeemedAt || stamp.usedAt || stamp.createdAt || "";
 
           return `
@@ -436,7 +412,8 @@ function renderStampPage() {
               <strong>${escapeHtml(stamp.stampName || stamp.eventTitle || "スタンプ")}</strong>
 
               <p class="muted">
-                ${stamp.point !== undefined && stamp.point !== "" ? `+${escapeHtml(stamp.point)}pt` : ""}
+                ${stamp.eventTitle ? `公演：${escapeHtml(stamp.eventTitle)}` : ""}
+                ${stamp.point !== undefined && stamp.point !== "" ? ` / +${escapeHtml(stamp.point)}pt` : ""}
                 ${acquiredAt ? ` / 取得日：${formatDate(acquiredAt)}` : ""}
               </p>
             </div>
@@ -444,7 +421,7 @@ function renderStampPage() {
         }).join("")}
       </div>
 
-      ${renderPager(stampGroupsCache.length, stampPageIndex, "stamp")}
+      ${renderPager(totalPages, stampPageIndex, "stamp")}
     </div>
   `;
 
@@ -456,10 +433,14 @@ function renderStampPage() {
   });
 }
 
-function renderPager(total, current, type) {
-  if (total <= 1) return "";
+/* =========================
+   数字ボタン
+========================= */
 
-  const buttons = Array.from({ length: total }, (_, i) => {
+function renderPager(totalPages, current, type) {
+  if (totalPages <= 1) return "";
+
+  const buttons = Array.from({ length: totalPages }, (_, i) => {
     const active = i === current ? "active" : "";
 
     if (type === "ticket") {
@@ -479,6 +460,10 @@ function renderPager(total, current, type) {
     </div>
   `;
 }
+
+/* =========================
+   タブ・表示切替
+========================= */
 
 function switchTab(tab) {
   document.querySelectorAll(".tab").forEach((btn) => {
@@ -516,6 +501,10 @@ function getToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
 
+/* =========================
+   表示用テキスト
+========================= */
+
 function gameStatusText(status) {
   const map = {
     unused: "未アクセス",
@@ -527,15 +516,6 @@ function gameStatusText(status) {
   };
 
   return map[status] || status || "未アクセス";
-}
-
-async function copyUrl(url) {
-  try {
-    await navigator.clipboard.writeText(url);
-    showMessage("ゲームURLをコピーしました。", "ok");
-  } catch (err) {
-    window.prompt("このURLをコピーしてください", url);
-  }
 }
 
 function statusText(status) {
@@ -557,6 +537,19 @@ function sourceText(source) {
   };
 
   return map[source] || source;
+}
+
+/* =========================
+   共通
+========================= */
+
+async function copyUrl(url) {
+  try {
+    await navigator.clipboard.writeText(url);
+    showMessage("ゲームURLをコピーしました。", "ok");
+  } catch (err) {
+    window.prompt("このURLをコピーしてください", url);
+  }
 }
 
 function showMessage(text, type = "ok") {
