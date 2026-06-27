@@ -1176,172 +1176,184 @@ svg {
 
 /* =========================
    公演ごとのチケットページ
-   画像と各ボックスを分離
+   最終レイアウト修正版
+   - タイトルを自然に改行
+   - ストーリー/注意事項の二重ボックス削除
 ========================= */
 
 #eventSection.event-page {
-  width: 100%;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 0;
-  background: transparent;
-  border: none;
-  box-shadow: none;
+  width: 100% !important;
+  max-width: 1180px !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
+/* 上段：画像ボックス + タイトルボックス */
 .event-top-layout {
-  display: grid;
-  grid-template-columns: 38% 1fr;
-  gap: 20px;
-  align-items: stretch;
-  margin-bottom: 20px;
+  display: grid !important;
+  grid-template-columns: 320px minmax(0, 1fr) !important;
+  gap: 16px !important;
+  align-items: stretch !important;
+  margin-bottom: 16px !important;
 }
 
 .event-visual-box,
 .event-summary-box,
 .event-info-box,
 .ticket-box {
-  border: 2px solid #050505;
-  background: #fff;
-  box-sizing: border-box;
+  border: 2px solid #050505 !important;
+  background: #fff !important;
+  box-sizing: border-box !important;
 }
 
+/* 画像だけの黒ボックス */
 .event-visual-box {
-  background: #050505;
-  padding: 24px;
-  display: grid;
-  place-items: center;
-  min-height: 620px;
+  background: #050505 !important;
+  padding: 20px !important;
+  display: grid !important;
+  place-items: center !important;
+  min-height: 360px !important;
 }
 
 #mainVisual.main-visual {
-  display: block;
-  width: 100%;
-  max-width: 360px;
-  height: auto;
-  max-height: 560px;
-  object-fit: contain;
-  object-position: center;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  margin: 0 auto;
-  padding: 0;
+  display: block !important;
+  width: 100% !important;
+  max-width: 270px !important;
+  height: auto !important;
+  max-height: 340px !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  position: static !important;
 }
 
+/* 右のタイトルボックス */
 .event-summary-box {
-  padding: 42px 40px;
+  padding: 32px 36px !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
 }
 
 #eventTypeText.event-type-label {
-  display: inline-flex;
-  width: fit-content;
-  border: 2px solid #050505;
-  background: #fff;
-  color: #050505;
-  padding: 10px 16px;
-  font-size: 14px;
-  font-weight: 950;
-  letter-spacing: .08em;
-  box-shadow: 5px 5px 0 #050505;
-  margin: 0 0 26px;
+  display: inline-flex !important;
+  width: fit-content !important;
+  border: 2px solid #050505 !important;
+  background: #fff !important;
+  color: #050505 !important;
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+  font-weight: 950 !important;
+  letter-spacing: .08em !important;
+  box-shadow: 4px 4px 0 #050505 !important;
+  margin: 0 0 18px !important;
 }
 
+/* タイトル：横に伸びすぎないようにする */
 #eventTitle {
-  display: block;
-  width: 100%;
-  margin: 0 0 20px;
-  font-size: clamp(36px, 4.8vw, 72px);
-  line-height: 1.05;
-  letter-spacing: -0.05em;
-  word-break: keep-all;
-  overflow-wrap: break-word;
-  writing-mode: horizontal-tb;
+  display: block !important;
+  width: 100% !important;
+  max-width: 720px !important;
+  margin: 0 0 18px !important;
+  font-size: clamp(34px, 4vw, 58px) !important;
+  line-height: 1.08 !important;
+  letter-spacing: -0.05em !important;
+  writing-mode: horizontal-tb !important;
+  word-break: normal !important;
+  overflow-wrap: anywhere !important;
+  line-break: strict !important;
 }
 
+/* 説明文 */
 #eventDescription {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.95;
-  color: #666;
-  border-left: 6px solid #050505;
-  padding-left: 18px;
+  margin: 0 !important;
+  font-size: 14px !important;
+  line-height: 1.9 !important;
+  color: #666 !important;
+  border-left: 6px solid #050505 !important;
+  padding-left: 16px !important;
 }
 
+/* 下段ボックス */
 .event-info-box,
 .ticket-box {
-  padding: 28px;
-  margin-bottom: 20px;
+  padding: 24px !important;
+  margin-bottom: 16px !important;
 }
 
 .event-info-box h2,
 .ticket-box h2 {
-  margin: 0 0 18px;
-  font-size: clamp(28px, 3vw, 48px);
-  line-height: 1.1;
-  letter-spacing: -0.03em;
-  border-bottom: 2px solid #050505;
-  padding-bottom: 12px;
+  margin: 0 0 14px !important;
+  font-size: clamp(26px, 3vw, 42px) !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.03em !important;
+  border-bottom: 2px solid #050505 !important;
+  padding-bottom: 10px !important;
 }
 
+/* ここが重要：ストーリー/注意事項の中の追加ボックスを消す */
 #eventStory,
-#eventNotes,
-#confirmText {
-  border: 2px solid #050505;
-  padding: 18px;
-  background: #fff;
-  box-sizing: border-box;
+#eventNotes {
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 #eventStory p,
-#eventNotes p,
-#confirmText p {
-  margin: 0 0 12px;
-  line-height: 1.95;
+#eventNotes p {
+  margin: 0 0 10px !important;
+  line-height: 1.9 !important;
 }
 
 #eventStory p:last-child,
-#eventNotes p:last-child,
-#confirmText p:last-child {
-  margin-bottom: 0;
+#eventNotes p:last-child {
+  margin-bottom: 0 !important;
 }
 
+/* 確認画面だけは中身を見やすく */
+#confirmText {
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* チケット欄 */
 #freeArea,
 #paidArea {
-  margin-top: 12px;
-}
-
-#freeArea p,
-#paidArea p {
-  margin-top: 0;
-  margin-bottom: 14px;
+  margin-top: 10px !important;
 }
 
 #ticketCount,
 #paidCode {
-  width: 100%;
-  min-height: 48px;
-  margin-top: 8px;
-  margin-bottom: 14px;
-  padding: 10px 12px;
-  font-size: 16px;
-  border: 2px solid #050505;
-  background: #fff;
-  box-sizing: border-box;
-}
-
-#shopLink {
-  margin-bottom: 14px;
+  width: 100% !important;
+  min-height: 48px !important;
+  margin-top: 8px !important;
+  margin-bottom: 14px !important;
+  padding: 10px 12px !important;
+  font-size: 16px !important;
+  border: 2px solid #050505 !important;
+  background: #fff !important;
+  box-sizing: border-box !important;
 }
 
 .button-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 16px;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+  margin-top: 14px !important;
 }
 
-/* hidden を最優先 */
+/* hiddenを最優先 */
 .hidden {
   display: none !important;
 }
@@ -1359,62 +1371,38 @@ svg {
 /* スマホ */
 @media (max-width: 800px) {
   .event-top-layout {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
   }
 
   .event-visual-box {
-    min-height: 0;
-    padding: 16px;
+    min-height: 0 !important;
+    padding: 16px !important;
   }
 
   #mainVisual.main-visual {
-    max-width: 100%;
-    max-height: 520px;
+    max-width: 100% !important;
+    max-height: 520px !important;
   }
 
   .event-summary-box,
   .event-info-box,
   .ticket-box {
-    padding: 18px;
+    padding: 18px !important;
   }
 
   #eventTitle {
-    font-size: 34px;
-    line-height: 1.08;
-  }
-
-  .event-info-box h2,
-  .ticket-box h2 {
-    font-size: 28px;
+    font-size: 34px !important;
+    line-height: 1.1 !important;
   }
 
   .button-row {
-    flex-direction: column;
+    flex-direction: column !important;
   }
 
   .button-row button,
   .button-row .game-link {
-    width: 100%;
-    justify-content: center;
+    width: 100% !important;
+    justify-content: center !important;
   }
-}
-
-/* =========================
-   hiddenを最優先で効かせる
-   有料・確認・発行結果が最初から出る問題を修正
-========================= */
-
-.hidden {
-  display: none !important;
-}
-
-#freeArea.hidden,
-#paidArea.hidden,
-#confirmArea.hidden,
-#resultArea.hidden,
-#authNotice.hidden,
-#notFound.hidden,
-#mainVisual.hidden {
-  display: none !important;
 }
