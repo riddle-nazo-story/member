@@ -9,6 +9,142 @@
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="apple-touch-icon" href="favicon.png" />
 
+  <script>
+  document.documentElement.classList.add("rs-checking");
+</script>
+
+<style>
+  html.rs-checking body {
+    visibility: hidden;
+  }
+</style>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+  import {
+    getAuth,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+  import {
+    getDatabase,
+    ref,
+    get,
+    onValue
+  } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+  import { firebaseConfig } from "./firebase-config.js";
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+
+  let originalBodyHTML = null;
+
+  function escapeHtml(text) {
+    return String(text)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function showSite() {
+    document.documentElement.classList.remove("rs-checking");
+
+    if (originalBodyHTML && document.body.dataset.maintenanceMode === "true") {
+      document.body.innerHTML = originalBodyHTML;
+      document.body.dataset.maintenanceMode = "false";
+    }
+  }
+
+  function showMaintenance(message) {
+    document.documentElement.classList.remove("rs-checking");
+
+    if (!originalBodyHTML) {
+      originalBodyHTML = document.body.innerHTML;
+    }
+
+    document.body.dataset.maintenanceMode = "true";
+
+    document.body.innerHTML = `
+      <main style="
+        min-height:100vh;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background:#050505;
+        color:#fff;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Noto Sans JP', sans-serif;
+        padding:24px;
+        text-align:center;
+        box-sizing:border-box;
+      ">
+        <section style="
+          width:min(560px, 100%);
+          border:1px solid rgba(255,255,255,.2);
+          border-radius:22px;
+          padding:38px 24px;
+          background:rgba(255,255,255,.045);
+          box-shadow:0 24px 70px rgba(0,0,0,.45);
+        ">
+          <p style="
+            letter-spacing:.24em;
+            font-size:12px;
+            opacity:.65;
+            margin:0 0 14px;
+          ">
+            RIDDLE STORY MEMBER
+          </p>
+
+          <h1 style="
+            font-size:28px;
+            margin:0 0 18px;
+            letter-spacing:.06em;
+          ">
+            メンテナンス中
+          </h1>
+
+          <p style="
+            line-height:1.9;
+            opacity:.86;
+            margin:0;
+            font-size:15px;
+          ">
+            ${escapeHtml(message || "現在、サイトを調整しています。しばらくお待ちください。")}
+          </p>
+        </section>
+      </main>
+    `;
+  }
+
+  async function checkAdmin(user) {
+    if (!user) return false;
+
+    try {
+      const snap = await get(ref(db, `admins/${user.uid}`));
+      return snap.val() === true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    const isAdmin = await checkAdmin(user);
+
+    onValue(ref(db, "settings"), (snap) => {
+      const settings = snap.val() || {};
+      const isMaintenance = settings.maintenance === true;
+
+      if (isMaintenance && !isAdmin) {
+        showMaintenance(settings.maintenanceMessage);
+      } else {
+        showSite();
+      }
+    });
+  });
+</script>
+
   <link rel="stylesheet" href="style.css" />
   <script src="https://unpkg.com/html5-qrcode" defer></script>
 </head>
