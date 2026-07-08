@@ -174,11 +174,33 @@ async function api(action, data = {}) {
   return json.result;
 }
 
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim());
+}
+
 async function login() {
   try {
+    const email = $("loginEmail").value.trim();
+    const password = $("loginPassword").value;
+
+    if (!email) {
+      showMessage("メールアドレスを入力してください。", "error");
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      showMessage("メールアドレスの形式で入力してください。例：example@example.com", "error");
+      return;
+    }
+
+    if (!password) {
+      showMessage("パスワードを入力してください。", "error");
+      return;
+    }
+
     const res = await api("login", {
-      email: $("loginEmail").value,
-      password: $("loginPassword").value,
+      email,
+      password,
     });
 
     localStorage.setItem(TOKEN_KEY, res.token);
@@ -199,14 +221,38 @@ async function login() {
 
 async function register() {
   try {
+    const name = $("registerName").value.trim();
+    const email = $("registerEmail").value.trim();
+    const password = $("registerPassword").value;
+
+    if (!name) {
+      showMessage("表示名を入力してください。", "error");
+      return;
+    }
+
+    if (!email) {
+      showMessage("メールアドレスを入力してください。", "error");
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      showMessage("メールアドレスの形式で入力してください。例：example@example.com", "error");
+      return;
+    }
+
+    if (!password) {
+      showMessage("パスワードを入力してください。", "error");
+      return;
+    }
+
     const res = await api("register", {
-  name: $("registerName").value,
-  email: $("registerEmail").value,
-  password: $("registerPassword").value,
-  termsAgreed: $("termsAgreed").checked,
-  privacyAgreed: $("privacyAgreed").checked,
-  campaignOptIn: $("campaignOptIn") ? $("campaignOptIn").checked : false,
-});
+      name,
+      email,
+      password,
+      termsAgreed: $("termsAgreed").checked,
+      privacyAgreed: $("privacyAgreed").checked,
+      campaignOptIn: $("campaignOptIn") ? $("campaignOptIn").checked : false,
+    });
 
     localStorage.setItem(TOKEN_KEY, res.token);
     currentUser = res.user;
