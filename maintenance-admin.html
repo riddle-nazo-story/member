@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>RIDDLE STORY MEMBER メンテ管理</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top, rgba(255,255,255,.12), transparent 35%),
+        #050505;
+      color: #fff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Noto Sans JP", sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    main {
+      width: min(620px, 100%);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 24px;
+      padding: 30px;
+      background: rgba(255,255,255,.055);
+      box-shadow: 0 24px 80px rgba(0,0,0,.55);
+    }
+
+    .label {
+      font-size: 12px;
+      letter-spacing: .24em;
+      opacity: .62;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-size: 28px;
+    }
+
+    p {
+      line-height: 1.8;
+      opacity: .82;
+    }
+
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 18px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+
+    .primary {
+      background: #fff;
+      color: #000;
+    }
+
+    .danger {
+      background: #ff4d4d;
+      color: #fff;
+    }
+
+    .ghost {
+      background: rgba(255,255,255,.13);
+      color: #fff;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      margin-top: 10px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.3);
+      color: #fff;
+      padding: 14px;
+      line-height: 1.8;
+      resize: vertical;
+      font: inherit;
+    }
+
+    .box {
+      margin-top: 18px;
+      padding: 15px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.09);
+      line-height: 1.8;
+      word-break: break-all;
+      font-size: 14px;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.15);
+      font-weight: 800;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    code {
+      background: rgba(0,0,0,.35);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    a {
+      color: #fff;
+      font-weight: 800;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <div class="label">RIDDLE STORY MEMBER</div>
+    <h1>メンテナンス管理</h1>
+
+    <p>
+      管理者だけが、通常サイトのメンテナンス状態を切り替えられます。
+    </p>
+
+    <button id="loginBtn" class="primary">Googleでログイン</button>
+
+    <section id="adminArea" class="hidden">
+      <div class="box">
+        <strong>ログイン情報</strong><br>
+        UID：<span id="uidText"></span><br>
+        権限：<span id="roleText"></span>
+      </div>
+
+      <div id="notAdminBox" class="box hidden">
+        <strong>まだ管理者登録されていません。</strong><br><br>
+        下のUIDをFirebaseのRealtime Databaseに追加してください。<br><br>
+        <code>admins / あなたのUID / true</code>
+      </div>
+
+      <div id="controlBox" class="hidden">
+        <div class="box">
+          現在の状態：
+          <span id="maintenanceStatus" class="status">確認中...</span>
+        </div>
+
+        <div class="box">
+          <label for="messageInput">メンテナンス画面の文章</label>
+          <textarea id="messageInput"></textarea>
+        </div>
+
+        <button id="maintenanceOnBtn" class="danger">メンテナンスON</button>
+        <button id="maintenanceOffBtn" class="primary">メンテナンスOFF</button>
+        <button id="saveMessageBtn" class="ghost">文章だけ保存</button>
+
+        <div class="box">
+          通常サイト確認：<br>
+          <a href="./index.html" target="_blank" rel="noopener noreferrer">index.htmlを開く</a>
+        </div>
+      </div>
+
+      <button id="logoutBtn" class="ghost">ログアウト</button>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    import {
+      getDatabase,
+      ref,
+      get,
+      update,
+      onValue
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+    import { firebaseConfig } from "./firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+    const provider = new GoogleAuthProvider();
+
+    const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const adminArea = document.getElementById("adminArea");
+    const uidText = document.getElementById("uidText");
+    const roleText = document.getElementById("roleText");
+    const notAdminBox = document.getElementById("notAdminBox");
+    const controlBox = document.getElementById("controlBox");
+    const maintenanceStatus = document.getElementById("maintenanceStatus");
+    const messageInput = document.getElementById("messageInput");
+
+    const maintenanceOnBtn = document.getElementById("maintenanceOnBtn");
+    const maintenanceOffBtn = document.getElementById("maintenanceOffBtn");
+    const saveMessageBtn = document.getElementById("saveMessageBtn");
+
+    let currentUser = null;
+    let isAdmin = false;
+
+    loginBtn.addEventListener("click", async () => {
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        alert("ログインに失敗しました。FirebaseのGoogleログイン設定を確認してください。");
+        console.error(error);
+      }
+    });
+
+    logoutBtn.addEventListener("click", async () => {
+      await signOut(auth);
+      location.reload();
+    });
+
+    async function checkAdmin(uid) {
+      try {
+        const snap = await get(ref(db, `admins/${uid}`));
+        return snap.val() === true;
+      } catch (error) {
+        console.error(error);
+        return false;
+      }
+    }
+
+    async function saveSettings(data) {
+      if (!currentUser || !isAdmin) {
+        alert("管理者権限がありません。");
+        return;
+      }
+
+      try {
+        await update(ref(db, "settings"), {
+          ...data,
+          updatedAt: Date.now(),
+          updatedBy: currentUser.uid
+        });
+
+        alert("保存しました。");
+      } catch (error) {
+        alert("保存に失敗しました。Firebaseルールや管理者UIDを確認してください。");
+        console.error(error);
+      }
+    }
+
+    maintenanceOnBtn.addEventListener("click", async () => {
+      await saveSettings({
+        maintenance: true,
+        maintenanceMessage: messageInput.value
+      });
+    });
+
+    maintenanceOffBtn.addEventListener("click", async () => {
+      await saveSettings({
+        maintenance: false,
+        maintenanceMessage: messageInput.value
+      });
+    });
+
+    saveMessageBtn.addEventListener("click", async () => {
+      await saveSettings({
+        maintenanceMessage: messageInput.value
+      });
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user;
+
+      if (!user) {
+        loginBtn.classList.remove("hidden");
+        adminArea.classList.add("hidden");
+        return;
+      }
+
+      loginBtn.classList.add("hidden");
+      adminArea.classList.remove("hidden");
+
+      uidText.textContent = user.uid;
+
+      isAdmin = await checkAdmin(user.uid);
+
+      roleText.textContent = isAdmin ? "管理者" : "未登録";
+      notAdminBox.classList.toggle("hidden", isAdmin);
+      controlBox.classList.toggle("hidden", !isAdmin);
+
+      if (!isAdmin) return;
+
+      onValue(ref(db, "settings"), (snap) => {
+        const settings = snap.val() || {};
+
+        maintenanceStatus.textContent = settings.maintenance
+          ? "メンテナンス中"
+          : "公開中";
+
+        messageInput.value = settings.maintenanceMessage || "";
+      });
+    });
+  </script>
+</body>
+</html>
