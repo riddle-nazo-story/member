@@ -9,5 +9,5 @@ export const firebaseConfig = {
   appId: "1:383421245640:web:6316558557f125826b5dfd",
 
   // Realtime Databaseを作成したあと、ここにURLを入れる
-  databaseURL: "https://riddle-story-member-default-rtdb.asia-southeast1.firebasedatabase.app/"
+  databaseURL: "https://riddle-story-member-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
