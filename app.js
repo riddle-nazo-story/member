@@ -137,8 +137,6 @@ async function saveCampaignOptIn() {
 function bindEvents() {
   addClick("loginBtn", login);
   addClick("registerBtn", register);
-  addClick("requestPasswordResetBtn", requestPasswordReset);
-  addClick("resetPasswordBtn", resetPassword);
   addClick("logoutBtn", logout);
   addClick("redeemStampBtn", redeemStamp);
   addClick("startQrBtn", startQr);
@@ -267,96 +265,6 @@ async function register() {
 
     showMember();
     await loadMyData();
-  } catch (err) {
-    showMessage(err.message, "error");
-  }
-}
-
-async function requestPasswordReset() {
-  try {
-    const resetEmailInput = $("resetEmail");
-    const loginEmailInput = $("loginEmail");
-
-    const email = (
-      resetEmailInput && resetEmailInput.value.trim()
-        ? resetEmailInput.value.trim()
-        : loginEmailInput
-          ? loginEmailInput.value.trim()
-          : ""
-    );
-
-    if (!email) {
-      showMessage("メールアドレスを入力してください。", "error");
-      return;
-    }
-
-    if (!isValidEmail(email)) {
-      showMessage("メールアドレスの形式で入力してください。例：example@example.com", "error");
-      return;
-    }
-
-    const res = await api("requestPasswordReset", {
-      email,
-    });
-
-    showMessage(
-      res.message || "パスワード再設定コードをメールで送信しました。",
-      "ok"
-    );
-  } catch (err) {
-    showMessage(err.message, "error");
-  }
-}
-
-async function resetPassword() {
-  try {
-    const resetEmailInput = $("resetEmail");
-    const loginEmailInput = $("loginEmail");
-
-    const email = (
-      resetEmailInput && resetEmailInput.value.trim()
-        ? resetEmailInput.value.trim()
-        : loginEmailInput
-          ? loginEmailInput.value.trim()
-          : ""
-    );
-
-    const code = $("resetCode") ? $("resetCode").value.trim() : "";
-    const newPassword = $("resetNewPassword") ? $("resetNewPassword").value : "";
-
-    if (!email) {
-      showMessage("メールアドレスを入力してください。", "error");
-      return;
-    }
-
-    if (!isValidEmail(email)) {
-      showMessage("メールアドレスの形式で入力してください。例：example@example.com", "error");
-      return;
-    }
-
-    if (!code) {
-      showMessage("再設定コードを入力してください。", "error");
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      showMessage("新しいパスワードは6文字以上にしてください。", "error");
-      return;
-    }
-
-    const res = await api("resetPassword", {
-      email,
-      code,
-      newPassword,
-    });
-
-    if ($("resetCode")) $("resetCode").value = "";
-    if ($("resetNewPassword")) $("resetNewPassword").value = "";
-
-    showMessage(
-      res.message || "パスワードを再設定しました。新しいパスワードでログインしてください。",
-      "ok"
-    );
   } catch (err) {
     showMessage(err.message, "error");
   }
