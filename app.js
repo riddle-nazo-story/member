@@ -13,6 +13,7 @@ let qrBusy = false;
 // ページ切り替え用
 let ticketPageIndex = 0;
 let ticketItemsCache = [];
+let ticketEventFilter = "all";
 
 let stampPageIndex = 0;
 let stampItemsCache = [];
@@ -393,7 +394,7 @@ renderEmailArea(data.user);
 }
 
 /* =========================
-   ゲームURL：3件ずつ表示
+   ゲームURL：公演別フィルター＋3件ずつ表示
 ========================= */
 
 function renderTickets(tickets) {
@@ -403,6 +404,7 @@ function renderTickets(tickets) {
 
   if (!tickets || !tickets.length) {
     ticketItemsCache = [];
+    ticketEventFilter = "all";
     ticketPageIndex = 0;
     root.innerHTML = `<p class="muted">まだチケットはありません。チケット購入サイトから発行してください。</p>`;
     return;
@@ -411,7 +413,48 @@ function renderTickets(tickets) {
   ticketItemsCache = tickets;
   ticketPageIndex = 0;
 
+  const availableEventKeys = new Set(tickets.map((ticket) => getTicketEventKey(ticket)));
+
+  if (ticketEventFilter !== "all" && !availableEventKeys.has(ticketEventFilter)) {
+    ticketEventFilter = "all";
+  }
+
   renderTicketPage();
+}
+
+function getTicketEventKey(ticket) {
+  return String(ticket.eventId || ticket.eventTitle || "event-unknown");
+}
+
+function getTicketEventGroups(tickets) {
+  const groups = new Map();
+
+  tickets.forEach((ticket) => {
+    const key = getTicketEventKey(ticket);
+    const title = ticket.eventTitle || ticket.eventId || "公演名なし";
+
+    if (!groups.has(key)) {
+      groups.set(key, {
+        key,
+        title,
+        count: 0,
+      });
+    }
+
+    groups.get(key).count += 1;
+  });
+
+  return Array.from(groups.values());
+}
+
+function getFilteredTicketItems() {
+  if (ticketEventFilter === "all") {
+    return ticketItemsCache;
+  }
+
+  return ticketItemsCache.filter((ticket) => {
+    return getTicketEventKey(ticket) === ticketEventFilter;
+  });
 }
 
 function renderTicketPage() {
@@ -419,16 +462,54 @@ function renderTicketPage() {
 
   if (!root) return;
 
-  const totalPages = Math.ceil(ticketItemsCache.length / TICKETS_PER_PAGE);
+  const eventGroups = getTicketEventGroups(ticketItemsCache);
+  const validFilterKeys = new Set(eventGroups.map((group) => group.key));
+
+  if (ticketEventFilter !== "all" && !validFilterKeys.has(ticketEventFilter)) {
+    ticketEventFilter = "all";
+  }
+
+  const filteredTickets = getFilteredTicketItems();
+  const totalPages = Math.ceil(filteredTickets.length / TICKETS_PER_PAGE);
+
+  if (ticketPageIndex >= totalPages) {
+    ticketPageIndex = Math.max(0, totalPages - 1);
+  }
+
   const start = ticketPageIndex * TICKETS_PER_PAGE;
-  const pageTickets = ticketItemsCache.slice(start, start + TICKETS_PER_PAGE);
+  const pageTickets = filteredTickets.slice(start, start + TICKETS_PER_PAGE);
+  const selectedGroup = eventGroups.find((group) => group.key === ticketEventFilter);
+  const selectedLabel = ticketEventFilter === "all"
+    ? "すべての公演を表示しています"
+    : `${selectedGroup ? selectedGroup.title : "選択した公演"}のURLを表示しています`;
 
   root.innerHTML = `
     <div class="game-library">
+      <div class="game-filter-panel">
+        <label class="game-filter-label" for="gameEventFilter">
+          <span class="eyebrow">SELECT EVENT</span>
+          <strong>表示する公演</strong>
+          <span>公演を選ぶと、その公演で発行されたゲームURLだけを表示します。</span>
+        </label>
+
+        <div class="game-filter-select-wrap">
+          <select id="gameEventFilter" class="game-event-filter" aria-label="表示する公演を選択">
+            <option value="all" ${ticketEventFilter === "all" ? "selected" : ""}>
+              すべて表示（${ticketItemsCache.length}件）
+            </option>
+            ${eventGroups.map((group) => `
+              <option value="${escapeAttr(group.key)}" ${ticketEventFilter === group.key ? "selected" : ""}>
+                ${escapeHtml(group.title)}（${group.count}件）
+              </option>
+            `).join("")}
+          </select>
+        </div>
+      </div>
+
       <div class="game-library-summary">
         <div>
-          <strong>${ticketItemsCache.length}件のゲーム</strong>
-          <span>プレイする作品を選んでください</span>
+          <strong>${filteredTickets.length}件のゲームURL</strong>
+          <span>${escapeHtml(selectedLabel)}</span>
         </div>
         ${totalPages > 1 ? `<span class="game-page-count">${ticketPageIndex + 1} / ${totalPages}ページ</span>` : ""}
       </div>
@@ -444,7 +525,7 @@ function renderTicketPage() {
             <article class="game-entry status-${statusView.className}">
               <div class="game-entry-head">
                 <div class="game-entry-title">
-                  <span class="game-entry-number">GAME ${String(itemNumber).padStart(2, "0")}</span>
+                  <span class="game-entry-number">URL ${String(itemNumber).padStart(2, "0")}</span>
                   <h3>${escapeHtml(t.eventTitle || t.eventId || "公演名なし")}</h3>
                 </div>
                 <span class="game-status-badge status-${statusView.className}">${statusView.label}</span>
@@ -497,6 +578,16 @@ function renderTicketPage() {
       ${renderPager(totalPages, ticketPageIndex, "ticket")}
     </div>
   `;
+
+  const eventFilterSelect = root.querySelector("#gameEventFilter");
+
+  if (eventFilterSelect) {
+    eventFilterSelect.addEventListener("change", () => {
+      ticketEventFilter = eventFilterSelect.value;
+      ticketPageIndex = 0;
+      renderTicketPage();
+    });
+  }
 
   root.querySelectorAll(".copy-url-btn").forEach((btn) => {
     btn.addEventListener("click", () => copyUrl(btn.dataset.copyUrl));
