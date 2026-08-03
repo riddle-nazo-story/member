@@ -1698,6 +1698,65 @@ svg {
   line-height: 1.65;
 }
 
+.game-filter-panel {
+  display: grid;
+  grid-template-columns: minmax(220px, .8fr) minmax(260px, 1.2fr);
+  gap: 18px;
+  align-items: end;
+  margin-bottom: 20px;
+  padding: 18px;
+  border: 2px solid var(--main);
+  background: var(--surface-2);
+}
+
+.game-filter-label {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+}
+
+.game-filter-label .eyebrow {
+  margin: 0;
+}
+
+.game-filter-label strong {
+  font-size: clamp(19px, 2.8vw, 26px);
+  line-height: 1.2;
+}
+
+.game-filter-label > span:last-child {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.65;
+}
+
+.game-filter-select-wrap {
+  position: relative;
+}
+
+.game-filter-select-wrap::after {
+  content: "▼";
+  position: absolute;
+  top: 50%;
+  right: 18px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.game-event-filter {
+  min-height: 58px;
+  padding: 14px 48px 14px 16px;
+  border-width: 2px;
+  background: #fff;
+  font-size: 16px;
+  font-weight: 950;
+  appearance: none;
+  cursor: pointer;
+}
+
 .game-library-summary {
   display: flex;
   justify-content: space-between;
@@ -1958,6 +2017,11 @@ svg {
   }
 
   .game-library-intro {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .game-filter-panel {
     grid-template-columns: 1fr;
     align-items: stretch;
   }
