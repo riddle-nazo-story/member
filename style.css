@@ -1629,3 +1629,366 @@ svg {
 .check input[type="checkbox"]:checked:hover {
   background: #050505 !important;
 }
+
+
+/* =========================
+   会員サイト：ゲームURL表示を明確化
+========================= */
+
+.member-main-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding: 10px;
+  background: rgba(255, 255, 255, .96);
+  border: 2px solid var(--main);
+  backdrop-filter: blur(10px);
+}
+
+.member-main-tabs .tab:first-child {
+  background: var(--main);
+  color: #fff;
+}
+
+.member-main-tabs .tab:first-child:not(.active) {
+  background: #fff;
+  color: var(--main);
+}
+
+.game-library-card {
+  border-width: 2px;
+}
+
+.game-library-intro {
+  display: grid;
+  grid-template-columns: 1fr minmax(250px, 380px);
+  gap: 22px;
+  align-items: end;
+  padding-bottom: 22px;
+  margin-bottom: 18px;
+  border-bottom: 2px solid var(--main);
+}
+
+.game-library-intro h2 {
+  margin: 0 0 10px;
+  font-size: clamp(34px, 5vw, 62px);
+  line-height: 1;
+  letter-spacing: -.05em;
+}
+
+.game-library-intro p {
+  margin-bottom: 0;
+}
+
+.game-library-note {
+  display: grid;
+  gap: 5px;
+  padding: 15px 16px;
+  border: 1px solid var(--main);
+  background: var(--surface-2);
+}
+
+.game-library-note strong {
+  font-size: 14px;
+}
+
+.game-library-note span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.game-library-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.game-library-summary > div {
+  display: grid;
+  gap: 3px;
+}
+
+.game-library-summary strong {
+  font-size: 18px;
+}
+
+.game-library-summary span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.game-page-count {
+  padding: 7px 10px;
+  border: 1px solid var(--main);
+  white-space: nowrap;
+}
+
+.game-entry-list {
+  display: grid;
+  gap: 16px;
+}
+
+.game-entry {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid var(--main);
+  padding: clamp(18px, 3vw, 28px);
+  background: #fff;
+}
+
+.game-entry::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 8px;
+  background: var(--main);
+}
+
+.game-entry.status-expired,
+.game-entry.status-blocked {
+  background: #f5f5f5;
+}
+
+.game-entry.status-expired::before,
+.game-entry.status-blocked::before {
+  background: #777;
+}
+
+.game-entry-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.game-entry-title {
+  min-width: 0;
+}
+
+.game-entry-number {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .16em;
+}
+
+.game-entry-title h3 {
+  margin: 0;
+  font-size: clamp(24px, 4vw, 38px);
+  line-height: 1.15;
+  letter-spacing: -.04em;
+  overflow-wrap: anywhere;
+}
+
+.game-status-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 2px solid var(--main);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.game-status-badge.status-ready,
+.game-status-badge.status-playing {
+  background: var(--main);
+  color: #fff;
+}
+
+.game-status-badge.status-expired,
+.game-status-badge.status-blocked {
+  border-color: #777;
+  color: #555;
+}
+
+.game-status-message {
+  margin: 14px 0 0;
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.game-primary-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.game-play-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 15px 20px;
+  border: 2px solid var(--main);
+  background: var(--main);
+  color: #fff;
+  text-decoration: none;
+  font-size: clamp(17px, 2.2vw, 22px);
+  font-weight: 950;
+  letter-spacing: .03em;
+  transition: transform .15s ease, background .15s ease, color .15s ease;
+}
+
+.game-play-button:hover {
+  transform: translateY(-2px);
+  background: #fff;
+  color: var(--main);
+}
+
+.game-play-button.disabled {
+  cursor: not-allowed;
+  border-color: #888;
+  background: #d7d7d7;
+  color: #555;
+}
+
+.game-play-button.disabled:hover {
+  transform: none;
+  background: #d7d7d7;
+  color: #555;
+}
+
+.game-copy-button {
+  min-height: 64px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.game-meta-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 18px 0 0;
+  border: 1px solid var(--main);
+}
+
+.game-meta-list > div {
+  padding: 12px 14px;
+}
+
+.game-meta-list > div + div {
+  border-left: 1px solid var(--main);
+}
+
+.game-meta-list dt {
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.game-meta-list dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.55;
+}
+
+.game-url-details {
+  margin-top: 12px;
+  border-top: 1px dashed var(--line);
+  padding-top: 10px;
+}
+
+.game-url-details summary {
+  cursor: pointer;
+  width: fit-content;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.game-url-details p {
+  margin: 9px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  word-break: break-all;
+}
+
+.game-library .page-buttons {
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top-width: 1px;
+}
+
+.game-library .page-btn {
+  width: 48px;
+  height: 48px;
+  border-width: 2px;
+  font-size: 18px;
+  box-shadow: 4px 4px 0 #050505;
+}
+
+.game-library .page-btn:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 #050505;
+}
+
+.game-library .page-btn.active {
+  transform: translate(4px, 4px);
+}
+
+@media (max-width: 760px) {
+  .member-main-tabs {
+    position: static;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .member-main-tabs .tab {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .game-library-intro {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .game-library-summary {
+    align-items: flex-start;
+  }
+
+  .game-entry-head {
+    display: grid;
+  }
+
+  .game-status-badge {
+    width: fit-content;
+  }
+
+  .game-primary-action {
+    grid-template-columns: 1fr;
+  }
+
+  .game-play-button,
+  .game-copy-button {
+    width: 100%;
+  }
+
+  .game-meta-list {
+    grid-template-columns: 1fr;
+  }
+
+  .game-meta-list > div + div {
+    border-left: 0;
+    border-top: 1px solid var(--main);
+  }
+}
