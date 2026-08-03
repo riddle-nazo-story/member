@@ -148,6 +148,10 @@ function bindEvents() {
   document.querySelectorAll(".tab").forEach((btn) => {
     btn.addEventListener("click", () => switchTab(btn.dataset.tab));
   });
+
+  document.querySelectorAll("[data-open-tab]").forEach((link) => {
+    link.addEventListener("click", () => switchTab(link.dataset.openTab));
+  });
 }
 
 function addClick(id, fn) {
@@ -420,42 +424,72 @@ function renderTicketPage() {
   const pageTickets = ticketItemsCache.slice(start, start + TICKETS_PER_PAGE);
 
   root.innerHTML = `
-    <div class="mini-item paged-ticket-box">
-      <div class="page-head">
+    <div class="game-library">
+      <div class="game-library-summary">
         <div>
-          <p class="eyebrow">GAME URL</p>
-          <h3>発行済みゲームURL</h3>
+          <strong>${ticketItemsCache.length}件のゲーム</strong>
+          <span>プレイする作品を選んでください</span>
         </div>
-        <p class="muted">${ticketPageIndex + 1} / ${totalPages}</p>
+        ${totalPages > 1 ? `<span class="game-page-count">${ticketPageIndex + 1} / ${totalPages}ページ</span>` : ""}
       </div>
 
-      <div class="ticket-page-list">
-        ${pageTickets.map((t) => {
+      <div class="game-entry-list">
+        ${pageTickets.map((t, index) => {
           const displayGameStatus = getDisplayGameStatus(t);
+          const statusView = getGameStatusView(displayGameStatus, !!t.gameUrl);
+          const canOpen = !!t.gameUrl && !["expired", "blocked"].includes(displayGameStatus);
+          const itemNumber = start + index + 1;
 
           return `
-            <div class="ticket-page-item">
-              <strong>${escapeHtml(t.eventTitle || t.eventId || "公演名なし")}</strong>
+            <article class="game-entry status-${statusView.className}">
+              <div class="game-entry-head">
+                <div class="game-entry-title">
+                  <span class="game-entry-number">GAME ${String(itemNumber).padStart(2, "0")}</span>
+                  <h3>${escapeHtml(t.eventTitle || t.eventId || "公演名なし")}</h3>
+                </div>
+                <span class="game-status-badge status-${statusView.className}">${statusView.label}</span>
+              </div>
+
+              <p class="game-status-message">${statusView.message}</p>
+
+              <div class="game-primary-action">
+                ${canOpen ? `
+                  <a href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener" class="game-play-button">
+                    <span aria-hidden="true">▶</span>
+                    ${getGameActionLabel(displayGameStatus)}
+                  </a>
+                ` : `
+                  <span class="game-play-button disabled" aria-disabled="true">
+                    <span aria-hidden="true">×</span>
+                    ${t.gameUrl ? "現在はプレイできません" : "URLを準備中です"}
+                  </span>
+                `}
+
+                ${t.gameUrl ? `
+                  <button type="button" class="copy-url-btn ghost game-copy-button" data-copy-url="${escapeAttr(t.gameUrl)}">
+                    ゲームURLをコピー
+                  </button>
+                ` : ""}
+              </div>
+
+              <dl class="game-meta-list">
+                <div>
+                  <dt>プレイ状況</dt>
+                  <dd>${statusView.label}</dd>
+                </div>
+                <div>
+                  <dt>URLの有効期限</dt>
+                  <dd>${t.gameExpiresAt ? formatGameExpiry(t.gameExpiresAt, displayGameStatus) : "期限の設定なし"}</dd>
+                </div>
+              </dl>
 
               ${t.gameUrl ? `
-                <div class="button-row">
-                  <a href="${escapeAttr(t.gameUrl)}" target="_blank" rel="noopener" class="game-link">
-                    ゲームを開く
-                  </a>
-
-                  <button type="button" class="copy-url-btn ghost" data-copy-url="${escapeAttr(t.gameUrl)}">
-                    URLコピー
-                  </button>
-                </div>
-              ` : `<p class="muted">ゲームURLなし</p>`}
-
-              <p class="muted">
-                会員状態：${statusText(t.status)}
-                ${displayGameStatus ? ` / URL状態：${gameStatusText(displayGameStatus)}` : ""}
-                ${t.gameExpiresAt ? ` / 期限：${formatDate(t.gameExpiresAt)}` : ""}
-                ${t.usedAt ? ` / 使用日：${formatDate(t.usedAt)}` : ""}
-              </p>
-            </div>
+                <details class="game-url-details">
+                  <summary>発行されたURLを確認する</summary>
+                  <p>${escapeHtml(t.gameUrl)}</p>
+                </details>
+              ` : ""}
+            </article>
           `;
         }).join("")}
       </div>
@@ -472,6 +506,7 @@ function renderTicketPage() {
     btn.addEventListener("click", () => {
       ticketPageIndex = Number(btn.dataset.ticketPage);
       renderTicketPage();
+      root.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   });
 }
@@ -635,6 +670,7 @@ function showMember() {
   if ($("authSection")) $("authSection").classList.add("hidden");
   if ($("memberSection")) $("memberSection").classList.remove("hidden");
   if ($("logoutBtn")) $("logoutBtn").classList.remove("hidden");
+  switchTab("games");
 }
 
 function getToken() {
@@ -670,6 +706,87 @@ function getDisplayGameStatus(ticket) {
   }
 
   return "expired";
+}
+
+function getGameStatusView(status, hasUrl) {
+  if (!hasUrl) {
+    return {
+      className: "pending",
+      label: "準備中",
+      message: "ゲームURLが発行されるまで、しばらくお待ちください。",
+    };
+  }
+
+  const map = {
+    unused: {
+      className: "ready",
+      label: "プレイできます",
+      message: "準備ができています。下のボタンからゲームを開始してください。",
+    },
+    active: {
+      className: "playing",
+      label: "プレイ中",
+      message: "このゲームは開始済みです。下のボタンから続きに戻れます。",
+    },
+    used: {
+      className: "playing",
+      label: "プレイ中",
+      message: "このゲームは開始済みです。下のボタンから続きに戻れます。",
+    },
+    cleared: {
+      className: "cleared",
+      label: "クリア済み",
+      message: "クリア済みのゲームです。結果画面をもう一度確認できます。",
+    },
+    expired: {
+      className: "expired",
+      label: "期限切れ",
+      message: "このゲームURLの有効期限が終了しているため、現在はプレイできません。",
+    },
+    blocked: {
+      className: "blocked",
+      label: "利用できません",
+      message: "このゲームURLは無効になっています。必要な場合は運営へお問い合わせください。",
+    },
+  };
+
+  return map[status] || {
+    className: "ready",
+    label: "プレイできます",
+    message: "下のボタンからゲームを開始してください。",
+  };
+}
+
+function getGameActionLabel(status) {
+  if (status === "active" || status === "used") return "ゲームの続きを開く";
+  if (status === "cleared") return "クリア画面を開く";
+  return "ゲームをプレイする";
+}
+
+function formatGameExpiry(value, status) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return formatDate(value);
+  }
+
+  if (status === "expired") {
+    return `${formatDate(value)}（終了）`;
+  }
+
+  const diff = date.getTime() - Date.now();
+  const hours = Math.ceil(diff / (1000 * 60 * 60));
+
+  if (hours <= 0) {
+    return `${formatDate(value)}（終了）`;
+  }
+
+  if (hours < 24) {
+    return `${formatDate(value)}（あと約${hours}時間）`;
+  }
+
+  const days = Math.ceil(hours / 24);
+  return `${formatDate(value)}（あと約${days}日）`;
 }
 
 function gameStatusText(status) {
