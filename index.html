@@ -145,7 +145,7 @@
   });
 </script>
 
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=game-library1" />
   <script src="https://unpkg.com/html5-qrcode" defer></script>
 </head>
 <body>
@@ -168,8 +168,9 @@
       <p>人々の願いを叶えろ—</p>
       <nav class="site-nav">
         <a href="ticket.html">TICKET</a>
-        <a href="#tab-stamp">STAMP</a>
-        <a href="#tab-mypage">MYPAGE</a>
+        <a href="#tab-games" data-open-tab="games">GAME</a>
+        <a href="#tab-stamp" data-open-tab="stamp">STAMP</a>
+        <a href="#tab-history" data-open-tab="history">HISTORY</a>
       </nav>
     </section>
 
@@ -310,12 +311,30 @@
     </div>
   </div>
 
-      <nav class="tabs">
-        <button class="tab active" data-tab="stamp">スタンプ</button>
-        <button class="tab" data-tab="mypage">マイページ</button>
+      <nav class="tabs member-main-tabs" aria-label="会員メニュー">
+        <button class="tab active" data-tab="games" type="button">ゲームをプレイ</button>
+        <button class="tab" data-tab="stamp" type="button">スタンプ</button>
+        <button class="tab" data-tab="history" type="button">参加・取得履歴</button>
       </nav>
 
-      <section id="tab-stamp" class="tab-panel">
+      <section id="tab-games" class="tab-panel">
+        <div class="card game-library-card">
+          <div class="game-library-intro">
+            <div>
+              <p class="eyebrow">YOUR GAMES</p>
+              <h2>ゲームをプレイ</h2>
+              <p class="muted">発行したゲームは、下の「ゲームをプレイする」ボタンから始められます。</p>
+            </div>
+            <div class="game-library-note">
+              <strong>URLは会員本人専用です</strong>
+              <span>SNSへの投稿や、第三者への共有はしないでください。</span>
+            </div>
+          </div>
+          <div id="myTickets"></div>
+        </div>
+      </section>
+
+      <section id="tab-stamp" class="tab-panel hidden">
         <div class="card">
           <h2>スタンプを取得</h2>
           <p class="muted">QRを読み込むか、運営サイトで発行されたスタンプコードを手動入力してください。</p>
@@ -336,22 +355,17 @@
         </div>
       </section>
 
-      <section id="tab-mypage" class="tab-panel hidden">
+      <section id="tab-history" class="tab-panel hidden">
         <div class="grid two">
-          <div class="card">
-            <h2>発行済みチケット</h2>
-            <div id="myTickets"></div>
-          </div>
-
           <div class="card">
             <h2>参加した公演</h2>
             <div id="myParticipations"></div>
           </div>
-        </div>
 
-        <div class="card">
-          <h2>スタンプ履歴</h2>
-          <div id="myStamps"></div>
+          <div class="card">
+            <h2>スタンプ履歴</h2>
+            <div id="myStamps"></div>
+          </div>
         </div>
       </section>
     </section>
@@ -359,6 +373,6 @@
     <div id="message" class="message hidden"></div>
   </main>
 
-  <script src="app.js?v=password-reset2"></script>
+  <script src="app.js?v=game-library1"></script>
 </body>
 </html>
