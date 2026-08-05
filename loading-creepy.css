@@ -1,0 +1,771 @@
+/* ========================================
+   RIDDLE STORY MEMBER
+   不気味な全画面ローディング演出
+   既存のローディングCSSより後ろに貼り付けてください
+======================================== */
+
+.member-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px;
+
+  overflow: hidden;
+  color: #f4edf2;
+  text-align: center;
+
+  background:
+    radial-gradient(
+      circle at 50% 42%,
+      rgba(103, 0, 34, 0.22) 0%,
+      rgba(48, 0, 24, 0.12) 24%,
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse at 12% 92%,
+      rgba(66, 0, 78, 0.14) 0%,
+      transparent 46%
+    ),
+    radial-gradient(
+      ellipse at 88% 8%,
+      rgba(76, 0, 26, 0.11) 0%,
+      transparent 42%
+    ),
+    #020203;
+
+  opacity: 1;
+  visibility: visible;
+
+  transition:
+    opacity 0.75s ease,
+    visibility 0.75s ease,
+    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.85s ease;
+}
+
+/* 粒状ノイズ・不規則な染み */
+.member-loading-overlay::before {
+  content: "";
+  position: absolute;
+  inset: -35%;
+  pointer-events: none;
+
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.15) 0 0.7px, transparent 1px),
+    radial-gradient(circle, rgba(136, 0, 44, 0.24) 0 0.8px, transparent 1.2px),
+    radial-gradient(ellipse, rgba(255, 255, 255, 0.025) 0 18%, transparent 45%);
+
+  background-size:
+    7px 7px,
+    13px 13px,
+    260px 180px;
+
+  background-position:
+    0 0,
+    31px 17px,
+    50% 50%;
+
+  opacity: 0.34;
+  mix-blend-mode: screen;
+
+  animation:
+    rsCreepyNoise 0.32s steps(2, end) infinite,
+    rsCreepyDrift 18s linear infinite;
+}
+
+/* 走査線と、横切る暗い影 */
+.member-loading-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgba(255, 255, 255, 0.022) 48%,
+      rgba(113, 0, 35, 0.12) 50%,
+      rgba(255, 255, 255, 0.018) 52%,
+      transparent 100%
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 3px,
+      rgba(255, 255, 255, 0.012) 4px
+    );
+
+  background-size:
+    100% 240px,
+    100% 4px;
+
+  opacity: 0.8;
+
+  animation:
+    rsCreepyScan 7.5s linear infinite,
+    rsCreepyFlicker 5.5s steps(1, end) infinite;
+}
+
+.member-loading-content {
+  position: relative;
+  z-index: 2;
+
+  width: min(540px, 100%);
+
+  transform-origin: center;
+
+  animation:
+    rsCreepyAppear 1.1s cubic-bezier(0.16, 1, 0.3, 1) both,
+    rsCreepyFloat 6.8s ease-in-out 1.1s infinite;
+}
+
+.member-loading-brand {
+  margin: 0 0 28px;
+
+  color: rgba(244, 237, 242, 0.48);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.42em;
+
+  text-shadow: 0 0 10px rgba(130, 0, 42, 0.32);
+
+  animation: rsCreepyBrand 4.7s steps(1, end) infinite;
+}
+
+/* 中央の印 */
+.member-loading-symbol {
+  position: relative;
+
+  width: 178px;
+  height: 178px;
+  margin: 0 auto 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  filter:
+    drop-shadow(0 0 15px rgba(110, 0, 38, 0.35))
+    drop-shadow(0 0 40px rgba(47, 0, 65, 0.18));
+
+  animation: rsCreepySymbolShake 9s steps(1, end) infinite;
+}
+
+.member-loading-ring {
+  position: absolute;
+  border-radius: 50%;
+  transform-origin: 50% 50%;
+}
+
+.member-loading-ring::before,
+.member-loading-ring::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+}
+
+/* 外側：少し歪んだ輪 */
+.member-loading-ring.ring-1 {
+  inset: 0;
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top-color: rgba(161, 26, 70, 0.78);
+  border-right-color: rgba(77, 0, 64, 0.62);
+  border-radius: 47% 53% 45% 55% / 55% 44% 56% 45%;
+
+  box-shadow:
+    inset 0 0 18px rgba(91, 0, 36, 0.07),
+    0 0 18px rgba(91, 0, 36, 0.1);
+
+  animation: rsCreepyRingOuter 7.4s linear infinite;
+}
+
+.member-loading-ring.ring-1::before {
+  width: 6px;
+  height: 6px;
+  top: 10px;
+  left: 39px;
+
+  background: #a91545;
+  box-shadow:
+    0 0 8px rgba(169, 21, 69, 0.9),
+    0 0 21px rgba(169, 21, 69, 0.58);
+}
+
+/* 真ん中：逆方向へ不規則に動く輪 */
+.member-loading-ring.ring-2 {
+  inset: 19px;
+
+  border: 1px dashed rgba(218, 194, 209, 0.16);
+  border-left-color: rgba(93, 22, 110, 0.78);
+  border-bottom-color: rgba(148, 0, 53, 0.44);
+  border-radius: 54% 46% 57% 43% / 48% 57% 43% 52%;
+
+  animation: rsCreepyRingMiddle 5.6s linear infinite;
+}
+
+.member-loading-ring.ring-2::before {
+  width: 5px;
+  height: 5px;
+  right: 8px;
+  bottom: 27px;
+
+  background: #6b1b76;
+  box-shadow:
+    0 0 8px rgba(107, 27, 118, 0.85),
+    0 0 18px rgba(107, 27, 118, 0.48);
+}
+
+/* 内側：呼吸する輪 */
+.member-loading-ring.ring-3 {
+  inset: 41px;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom-color: rgba(188, 45, 86, 0.72);
+  border-radius: 45% 55% 52% 48% / 58% 43% 57% 42%;
+
+  animation: rsCreepyRingInner 3.2s ease-in-out infinite;
+}
+
+/* 中央のR */
+.member-loading-core {
+  position: relative;
+  z-index: 3;
+
+  width: 72px;
+  height: 72px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(219, 193, 204, 0.15);
+  border-radius: 50%;
+
+  color: #f6eaf0;
+  font-size: 29px;
+  font-weight: 800;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(135, 0, 43, 0.2) 0%,
+      rgba(29, 0, 19, 0.55) 54%,
+      rgba(2, 2, 3, 0.9) 76%
+    );
+
+  box-shadow:
+    inset 0 0 24px rgba(130, 0, 42, 0.18),
+    0 0 18px rgba(103, 0, 35, 0.2);
+
+  text-shadow:
+    -1px 0 rgba(138, 0, 46, 0.65),
+    1px 0 rgba(75, 18, 88, 0.45),
+    0 0 13px rgba(255, 224, 236, 0.12);
+
+  animation:
+    rsCreepyCore 3.6s ease-in-out infinite,
+    rsCreepyCoreGlitch 8s steps(1, end) infinite;
+}
+
+.member-loading-label {
+  margin: 0 0 13px;
+
+  color: rgba(158, 64, 94, 0.8);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+
+  animation: rsCreepyLabel 4.2s steps(1, end) infinite;
+}
+
+.member-loading-content h1 {
+  margin: 0;
+
+  color: #f4edf2;
+  font-size: clamp(23px, 6vw, 34px);
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+
+  text-shadow:
+    -1px 0 rgba(122, 0, 40, 0.48),
+    1px 0 rgba(75, 13, 86, 0.38),
+    0 0 24px rgba(110, 0, 38, 0.15);
+
+  animation:
+    rsCreepyTitleIn 1.1s 0.18s cubic-bezier(0.16, 1, 0.3, 1) both,
+    rsCreepyTitleGlitch 7.8s 1.6s steps(1, end) infinite;
+}
+
+.member-loading-text {
+  margin: 18px 0 0;
+
+  color: rgba(235, 220, 228, 0.58);
+  font-size: 13px;
+  line-height: 1.85;
+  letter-spacing: 0.08em;
+
+  animation:
+    rsCreepyTextIn 1s 0.45s ease both,
+    rsCreepyTextBlink 5.8s 1.5s steps(1, end) infinite;
+}
+
+/* 不規則な3点 */
+.member-loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+
+  margin-top: 24px;
+}
+
+.member-loading-dots span {
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+  background: rgba(181, 54, 94, 0.78);
+
+  box-shadow:
+    0 0 8px rgba(143, 0, 45, 0.52),
+    0 0 18px rgba(75, 0, 67, 0.18);
+
+  animation: rsCreepyDot 1.8s ease-in-out infinite;
+}
+
+.member-loading-dots span:nth-child(2) {
+  animation-delay: 0.23s;
+}
+
+.member-loading-dots span:nth-child(3) {
+  animation-delay: 0.52s;
+}
+
+/* 完了時：中心へ吸い込まれるように消える */
+.member-loading-overlay.is-closing {
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(1.07);
+  filter: blur(13px) contrast(1.25);
+  pointer-events: none;
+}
+
+.member-loading-overlay.is-closing .member-loading-content {
+  transform: scale(0.82);
+}
+
+.member-loading-overlay.is-hidden {
+  display: none;
+}
+
+/* =========================
+   Keyframes
+========================= */
+
+@keyframes rsCreepyAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.94);
+    filter: blur(9px);
+  }
+
+  65% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.01);
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes rsCreepyFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  34% {
+    transform: translateY(-3px) rotate(-0.18deg);
+  }
+
+  67% {
+    transform: translateY(2px) rotate(0.14deg);
+  }
+}
+
+@keyframes rsCreepyNoise {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.25;
+  }
+
+  25% {
+    transform: translate(-1.5%, 1%);
+    opacity: 0.36;
+  }
+
+  50% {
+    transform: translate(1%, -1%);
+    opacity: 0.28;
+  }
+
+  75% {
+    transform: translate(0.5%, 1.5%);
+    opacity: 0.4;
+  }
+
+  100% {
+    transform: translate(-1%, 0.5%);
+    opacity: 0.3;
+  }
+}
+
+@keyframes rsCreepyDrift {
+  from {
+    background-position:
+      0 0,
+      31px 17px,
+      50% 50%;
+  }
+
+  to {
+    background-position:
+      120px -90px,
+      -100px 130px,
+      57% 43%;
+  }
+}
+
+@keyframes rsCreepyScan {
+  from {
+    background-position:
+      0 -250px,
+      0 0;
+  }
+
+  to {
+    background-position:
+      0 calc(100vh + 250px),
+      0 20px;
+  }
+}
+
+@keyframes rsCreepyFlicker {
+  0%,
+  100% {
+    opacity: 0.78;
+  }
+
+  9% {
+    opacity: 0.65;
+  }
+
+  10% {
+    opacity: 0.9;
+  }
+
+  46% {
+    opacity: 0.74;
+  }
+
+  47% {
+    opacity: 0.52;
+  }
+
+  48% {
+    opacity: 0.82;
+  }
+
+  82% {
+    opacity: 0.72;
+  }
+
+  83% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes rsCreepyRingOuter {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  42% {
+    transform: rotate(154deg) scale(1.025);
+  }
+
+  57% {
+    transform: rotate(209deg) scale(0.985);
+  }
+
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes rsCreepyRingMiddle {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  38% {
+    transform: rotate(-132deg) scale(0.975);
+  }
+
+  71% {
+    transform: rotate(-257deg) scale(1.02);
+  }
+
+  100% {
+    transform: rotate(-360deg) scale(1);
+  }
+}
+
+@keyframes rsCreepyRingInner {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(0.94);
+    opacity: 0.52;
+  }
+
+  50% {
+    transform: rotate(180deg) scale(1.06);
+    opacity: 0.95;
+  }
+}
+
+@keyframes rsCreepyCore {
+  0%,
+  100% {
+    transform: scale(0.95);
+    opacity: 0.76;
+  }
+
+  42% {
+    transform: scale(1.055);
+    opacity: 1;
+  }
+
+  58% {
+    transform: scale(1.02);
+    opacity: 0.88;
+  }
+}
+
+@keyframes rsCreepyCoreGlitch {
+  0%,
+  91%,
+  93%,
+  100% {
+    translate: 0 0;
+    filter: none;
+  }
+
+  92% {
+    translate: -2px 1px;
+    filter: contrast(1.5);
+  }
+
+  94% {
+    translate: 2px -1px;
+    filter: contrast(0.8);
+  }
+}
+
+@keyframes rsCreepySymbolShake {
+  0%,
+  93%,
+  95%,
+  100% {
+    translate: 0 0;
+  }
+
+  94% {
+    translate: -1px 0;
+  }
+
+  96% {
+    translate: 1px 1px;
+  }
+}
+
+@keyframes rsCreepyBrand {
+  0%,
+  90%,
+  92%,
+  100% {
+    opacity: 0.48;
+  }
+
+  91% {
+    opacity: 0.18;
+  }
+
+  93% {
+    opacity: 0.66;
+  }
+}
+
+@keyframes rsCreepyLabel {
+  0%,
+  79%,
+  82%,
+  100% {
+    opacity: 0.8;
+    translate: 0 0;
+  }
+
+  80% {
+    opacity: 0.24;
+    translate: -1px 0;
+  }
+
+  81% {
+    opacity: 1;
+    translate: 1px 0;
+  }
+}
+
+@keyframes rsCreepyTitleIn {
+  from {
+    opacity: 0;
+    transform: translateY(11px);
+    letter-spacing: 0.18em;
+    filter: blur(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    letter-spacing: 0.08em;
+    filter: blur(0);
+  }
+}
+
+@keyframes rsCreepyTitleGlitch {
+  0%,
+  87%,
+  90%,
+  100% {
+    translate: 0 0;
+    opacity: 1;
+  }
+
+  88% {
+    translate: -2px 0;
+    opacity: 0.72;
+  }
+
+  89% {
+    translate: 2px 0;
+    opacity: 0.95;
+  }
+}
+
+@keyframes rsCreepyTextIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rsCreepyTextBlink {
+  0%,
+  72%,
+  74%,
+  100% {
+    opacity: 0.58;
+  }
+
+  73% {
+    opacity: 0.18;
+  }
+
+  75% {
+    opacity: 0.72;
+  }
+}
+
+@keyframes rsCreepyDot {
+  0%,
+  100% {
+    transform: translateY(1px) scale(0.6);
+    opacity: 0.18;
+  }
+
+  38% {
+    transform: translateY(-7px) scale(1);
+    opacity: 0.9;
+  }
+
+  62% {
+    transform: translateY(-2px) scale(0.78);
+    opacity: 0.48;
+  }
+}
+
+/* スマホ調整 */
+@media (max-width: 600px) {
+  .member-loading-overlay {
+    padding: 20px;
+  }
+
+  .member-loading-symbol {
+    width: 148px;
+    height: 148px;
+    margin-bottom: 29px;
+  }
+
+  .member-loading-ring.ring-2 {
+    inset: 16px;
+  }
+
+  .member-loading-ring.ring-3 {
+    inset: 34px;
+  }
+
+  .member-loading-core {
+    width: 62px;
+    height: 62px;
+    font-size: 26px;
+  }
+
+  .member-loading-brand {
+    margin-bottom: 24px;
+    font-size: 9px;
+  }
+
+  .member-loading-content h1 {
+    font-size: 23px;
+  }
+
+  .member-loading-text {
+    font-size: 12px;
+  }
+}
+
+/* 動きを減らす設定の端末 */
+@media (prefers-reduced-motion: reduce) {
+  .member-loading-overlay *,
+  .member-loading-overlay::before,
+  .member-loading-overlay::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
