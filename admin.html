@@ -9,7 +9,7 @@
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="apple-touch-icon" href="favicon.png" />
 
-  <link rel="stylesheet" href="admin.css" />
+  <link rel="stylesheet" href="admin.css?v=event-sort1" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 </head>
 <body>
@@ -132,9 +132,27 @@
             </div>
           </section>
 
-          <section class="card">
-            <h2>登録済み公演</h2>
-            <div id="eventsTable"></div>
+          <section class="card event-list-card">
+            <div class="event-order-header">
+              <div>
+                <p class="eyebrow">DISPLAY ORDER</p>
+                <h2>イベント一覧・表示順</h2>
+                <p class="muted event-order-help">
+                  ドラッグ、または上下ボタンで並び替えられます。ここで保存した順番が、会員サイトとチケットサイトのイベント一覧に反映されます。
+                </p>
+              </div>
+
+              <button id="saveEventOrderBtn" type="button" disabled>
+                並び順を保存
+              </button>
+            </div>
+
+            <div id="eventOrderList" class="event-order-list"></div>
+
+            <details class="event-detail-list">
+              <summary>登録内容の詳細を表示</summary>
+              <div id="eventsTable"></div>
+            </details>
           </section>
         </div>
       </section>
@@ -269,6 +287,6 @@
     <div id="adminMessage" class="message hidden"></div>
   </main>
 
-  <script src="admin.js"></script>
+  <script src="admin.js?v=event-sort1"></script>
 </body>
 </html>
