@@ -41,8 +41,8 @@ async function init() {
     if (window.RSLoader) {
       RSLoader.update({
         label: "SEARCHING THE ARCHIVE",
-        title: "公開された物語を探索しています",
-        text: "スプレッドシートから公演一覧を読み込んでいます……",
+        title: "物語を探索しています",
+        text: "公演一覧を読み込んでいます……",
       });
     }
 
