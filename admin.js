@@ -1,5 +1,5 @@
 // GASのWebアプリURL
-const API_URL = "https://script.google.com/macros/s/AKfycbzAAVNMkySPZaIYtVPtpuG4h9DtbhDPpAjy0FvTmwoLiWkN--KCXiiPTMLyKWxqlLeD/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwZJGvGsEXSeMRPNU_jzqTvYyA5yhNbIAR-ZprH0O4Wbl6CeJX6YzWTpXS5_WUPVA45dQ/exec";
 
 const ADMIN_TOKEN_KEY = "rs_admin_token";
 
@@ -56,6 +56,9 @@ function removeHidden(id) {
 
 let adminEvents = [];
 let editingEventId = null;
+let eventOrderDraft = [];
+let eventOrderDirty = false;
+let draggedEventId = null;
 
 document.addEventListener("DOMContentLoaded", initAdmin);
 
@@ -64,6 +67,7 @@ async function initAdmin() {
   addClick("adminLogoutBtn", adminLogout);
   addClick("saveEventBtn", saveEvent);
   addClick("cancelEditEventBtn", cancelEventEdit);
+  addClick("saveEventOrderBtn", saveEventOrder);
   addClick("generateStampBtn", generateStamp);
   addClick("useTicketBtn", useTicket);
 
@@ -153,8 +157,239 @@ async function loadEvents() {
     token: getAdminToken(),
   });
 
+  eventOrderDraft = adminEvents.map((event) => event.eventId);
+  eventOrderDirty = false;
+
+  renderEventOrderList();
   renderEventsTable(adminEvents);
   renderEventSelect(adminEvents);
+  updateEventOrderSaveButton();
+}
+
+function getOrderedAdminEvents() {
+  const eventMap = new Map(adminEvents.map((event) => [event.eventId, event]));
+
+  return eventOrderDraft
+    .map((eventId) => eventMap.get(eventId))
+    .filter(Boolean);
+}
+
+function renderEventOrderList() {
+  const root = $("eventOrderList");
+  if (!root) return;
+
+  const events = getOrderedAdminEvents();
+
+  if (!events.length) {
+    root.innerHTML = `<p class="muted">登録済み公演はありません。</p>`;
+    return;
+  }
+
+  root.innerHTML = events.map((event, index) => `
+    <article
+      class="event-order-item"
+      draggable="true"
+      data-order-event="${escapeAttr(event.eventId)}"
+    >
+      <div class="event-order-position" aria-label="表示順 ${index + 1}">
+        ${index + 1}
+      </div>
+
+      <div class="event-order-handle" aria-hidden="true" title="ドラッグして並び替え">
+        <span></span><span></span><span></span>
+      </div>
+
+      <div class="event-order-main">
+        <div class="event-order-title-row">
+          <strong>${escapeHtml(event.title)}</strong>
+          <span class="event-order-status ${event.status === "public" ? "is-public" : "is-hidden"}">
+            ${event.status === "public" ? "公開" : "非公開"}
+          </span>
+        </div>
+        <span class="event-order-id">${escapeHtml(event.eventId)}</span>
+      </div>
+
+      <div class="event-order-actions">
+        <button
+          class="order-icon-btn ghost"
+          type="button"
+          data-move-event="${escapeAttr(event.eventId)}"
+          data-direction="-1"
+          aria-label="${escapeAttr(event.title)}を上へ移動"
+          title="上へ"
+          ${index === 0 ? "disabled" : ""}
+        >↑</button>
+
+        <button
+          class="order-icon-btn ghost"
+          type="button"
+          data-move-event="${escapeAttr(event.eventId)}"
+          data-direction="1"
+          aria-label="${escapeAttr(event.title)}を下へ移動"
+          title="下へ"
+          ${index === events.length - 1 ? "disabled" : ""}
+        >↓</button>
+
+        <button
+          class="small-btn"
+          type="button"
+          data-edit-order-event="${escapeAttr(event.eventId)}"
+        >編集</button>
+      </div>
+    </article>
+  `).join("");
+
+  root.querySelectorAll("[data-move-event]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      moveEventOrder(btn.dataset.moveEvent, Number(btn.dataset.direction));
+    });
+  });
+
+  root.querySelectorAll("[data-edit-order-event]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      startEventEdit(btn.dataset.editOrderEvent);
+    });
+  });
+
+  root.querySelectorAll("[data-order-event]").forEach((item) => {
+    item.addEventListener("dragstart", handleEventOrderDragStart);
+    item.addEventListener("dragover", handleEventOrderDragOver);
+    item.addEventListener("drop", handleEventOrderDrop);
+    item.addEventListener("dragend", handleEventOrderDragEnd);
+  });
+}
+
+function moveEventOrder(eventId, direction) {
+  const currentIndex = eventOrderDraft.indexOf(eventId);
+  if (currentIndex < 0) return;
+
+  const nextIndex = currentIndex + direction;
+  if (nextIndex < 0 || nextIndex >= eventOrderDraft.length) return;
+
+  const nextOrder = [...eventOrderDraft];
+  [nextOrder[currentIndex], nextOrder[nextIndex]] = [nextOrder[nextIndex], nextOrder[currentIndex]];
+
+  eventOrderDraft = nextOrder;
+  markEventOrderDirty();
+  renderEventOrderList();
+}
+
+function handleEventOrderDragStart(event) {
+  const item = event.currentTarget;
+  draggedEventId = item.dataset.orderEvent;
+  item.classList.add("is-dragging");
+
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", draggedEventId);
+  }
+}
+
+function handleEventOrderDragOver(event) {
+  event.preventDefault();
+
+  const targetItem = event.currentTarget;
+  const targetId = targetItem.dataset.orderEvent;
+
+  if (!draggedEventId || draggedEventId === targetId) return;
+
+  clearEventOrderDropTargets();
+
+  const rect = targetItem.getBoundingClientRect();
+  const insertAfter = event.clientY > rect.top + rect.height / 2;
+
+  targetItem.classList.add(insertAfter ? "is-drop-after" : "is-drop-before");
+
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = "move";
+  }
+}
+
+function handleEventOrderDrop(event) {
+  event.preventDefault();
+
+  const targetItem = event.currentTarget;
+  const targetId = targetItem.dataset.orderEvent;
+
+  if (!draggedEventId || draggedEventId === targetId) {
+    clearEventOrderDropTargets();
+    return;
+  }
+
+  const draggedIndex = eventOrderDraft.indexOf(draggedEventId);
+  const targetIndex = eventOrderDraft.indexOf(targetId);
+
+  if (draggedIndex < 0 || targetIndex < 0) {
+    clearEventOrderDropTargets();
+    return;
+  }
+
+  const rect = targetItem.getBoundingClientRect();
+  const insertAfter = event.clientY > rect.top + rect.height / 2;
+  let destinationIndex = targetIndex + (insertAfter ? 1 : 0);
+
+  const nextOrder = [...eventOrderDraft];
+  nextOrder.splice(draggedIndex, 1);
+
+  if (draggedIndex < destinationIndex) {
+    destinationIndex -= 1;
+  }
+
+  nextOrder.splice(destinationIndex, 0, draggedEventId);
+
+  eventOrderDraft = nextOrder;
+  markEventOrderDirty();
+  draggedEventId = null;
+  renderEventOrderList();
+}
+
+function handleEventOrderDragEnd() {
+  draggedEventId = null;
+  clearEventOrderDropTargets();
+
+  document.querySelectorAll(".event-order-item.is-dragging").forEach((item) => {
+    item.classList.remove("is-dragging");
+  });
+}
+
+function clearEventOrderDropTargets() {
+  document.querySelectorAll(".event-order-item.is-drop-before, .event-order-item.is-drop-after").forEach((item) => {
+    item.classList.remove("is-drop-before", "is-drop-after");
+  });
+}
+
+function markEventOrderDirty() {
+  eventOrderDirty = true;
+  updateEventOrderSaveButton();
+}
+
+function updateEventOrderSaveButton() {
+  const btn = $("saveEventOrderBtn");
+  if (!btn) return;
+
+  btn.disabled = !eventOrderDirty || eventOrderDraft.length === 0;
+  btn.textContent = eventOrderDirty ? "変更した順番を保存" : "並び順を保存済み";
+}
+
+async function saveEventOrder() {
+  if (!eventOrderDirty) return;
+
+  const btn = $("saveEventOrderBtn");
+
+  try {
+    if (btn) btn.disabled = true;
+
+    await api("adminReorderEvents", {
+      token: getAdminToken(),
+      eventIds: eventOrderDraft,
+    });
+
+    showMessage("イベントの表示順を保存しました。");
+    await loadEvents();
+  } catch (err) {
+    showMessage(err.message, "error");
+    updateEventOrderSaveButton();
+  }
 }
 
 function renderEventSelect(events) {
@@ -185,6 +420,7 @@ function renderEventsTable(events) {
       <table>
         <thead>
           <tr>
+            <th>順番</th>
             <th>操作</th>
             <th>チケットページ</th>
             <th>公演ID</th>
@@ -203,6 +439,7 @@ function renderEventsTable(events) {
         <tbody>
           ${events.map((e) => `
             <tr>
+              <td>${escapeHtml(e.displayOrder || "")}</td>
               <td>
                 <button class="small-btn" type="button" data-edit-event="${escapeAttr(e.eventId)}">
                   編集
