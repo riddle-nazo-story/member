@@ -13,26 +13,44 @@ async function init() {
     $("logoutBtn").addEventListener("click", logout);
   }
 
-  const token = getToken();
-
-  if (!token) {
-    showAuthNotice();
-    await loadEvents();
-    return;
+  if (window.RSLoader) {
+    RSLoader.show({
+      label: "SEARCHING THE ARCHIVE",
+      title: "公開された物語を探索しています",
+      text: "ログイン状態を確認しています……",
+    });
   }
 
+  const token = getToken();
+
   try {
-    const res = await api("me", { token });
-    currentUser = res.user;
+    if (!token) {
+      showAuthNotice();
+    } else {
+      try {
+        const res = await api("me", { token });
+        currentUser = res.user;
+        showTicketSection();
+      } catch (err) {
+        localStorage.removeItem(TOKEN_KEY);
+        currentUser = null;
+        showAuthNotice();
+      }
+    }
 
-    showTicketSection();
-    await loadEvents();
-  } catch (err) {
-    localStorage.removeItem(TOKEN_KEY);
-    currentUser = null;
+    if (window.RSLoader) {
+      RSLoader.update({
+        label: "SEARCHING THE ARCHIVE",
+        title: "公開された物語を探索しています",
+        text: "スプレッドシートから公演一覧を読み込んでいます……",
+      });
+    }
 
-    showAuthNotice();
     await loadEvents();
+  } finally {
+    if (window.RSLoader) {
+      RSLoader.hide();
+    }
   }
 }
 
