@@ -33,21 +33,50 @@ async function init() {
 
   bindEvents();
 
+  if (window.RSLoader) {
+    RSLoader.show({
+      label: "CHECKING MEMBER RECORD",
+      title: "あなたの記録を照合しています",
+      text: "会員情報を確認しています……",
+    });
+  }
+
   const token = getToken();
 
   if (token) {
     try {
       const res = await api("me", { token });
       currentUser = res.user;
+
+      if (window.RSLoader) {
+        RSLoader.update({
+          label: "RESTORING YOUR STORY",
+          title: "あなたの物語を復元しています",
+          text: "ゲーム・参加記録・スタンプ情報を読み込んでいます……",
+        });
+      }
+
       showMember();
       await loadMyData();
+
+      if (window.RSLoader) {
+        RSLoader.hide();
+      }
     } catch (err) {
       localStorage.removeItem(TOKEN_KEY);
       currentUser = null;
       showAuth();
+
+      if (window.RSLoader) {
+        RSLoader.hide();
+      }
     }
   } else {
     showAuth();
+
+    if (window.RSLoader) {
+      RSLoader.hide();
+    }
   }
 }
 
@@ -203,6 +232,14 @@ async function login() {
       return;
     }
 
+    if (window.RSLoader) {
+      RSLoader.show({
+        label: "VERIFYING IDENTITY",
+        title: "あなたの記録を探しています",
+        text: "ログイン情報を照合しています……",
+      });
+    }
+
     const res = await api("login", {
       email,
       password,
@@ -217,9 +254,25 @@ async function login() {
       return;
     }
 
+    if (window.RSLoader) {
+      RSLoader.update({
+        label: "RESTORING YOUR STORY",
+        title: "あなたの物語を復元しています",
+        text: "ゲーム・参加記録・スタンプ情報を読み込んでいます……",
+      });
+    }
+
     showMember();
     await loadMyData();
+
+    if (window.RSLoader) {
+      RSLoader.hide();
+    }
   } catch (err) {
+    if (window.RSLoader) {
+      RSLoader.hide();
+    }
+
     showMessage(err.message, "error");
   }
 }
@@ -250,6 +303,14 @@ async function register() {
       return;
     }
 
+    if (window.RSLoader) {
+      RSLoader.show({
+        label: "CREATING NEW RECORD",
+        title: "新しい記録を作成しています",
+        text: "あなたの情報を登録しています……",
+      });
+    }
+
     const res = await api("register", {
       name,
       email,
@@ -268,9 +329,25 @@ async function register() {
       return;
     }
 
+    if (window.RSLoader) {
+      RSLoader.update({
+        label: "RESTORING YOUR STORY",
+        title: "あなたの物語を復元しています",
+        text: "ゲーム・参加記録・スタンプ情報を読み込んでいます……",
+      });
+    }
+
     showMember();
     await loadMyData();
+
+    if (window.RSLoader) {
+      RSLoader.hide();
+    }
   } catch (err) {
+    if (window.RSLoader) {
+      RSLoader.hide();
+    }
+
     showMessage(err.message, "error");
   }
 }
