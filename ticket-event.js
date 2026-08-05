@@ -31,30 +31,52 @@ async function init() {
     $("backBtn").addEventListener("click", hideConfirm);
   }
 
-  const token = getToken();
-
-  if (token) {
-    try {
-      const me = await api("me", { token });
-      currentUser = me.user;
-
-      if ($("logoutBtn")) {
-        $("logoutBtn").classList.remove("hidden");
-      }
-
-      if ($("authNotice")) {
-        $("authNotice").classList.add("hidden");
-      }
-    } catch (err) {
-      localStorage.removeItem(TOKEN_KEY);
-      currentUser = null;
-      showAuthNotice();
-    }
-  } else {
-    showAuthNotice();
+  if (window.RSLoader) {
+    RSLoader.show({
+      label: "RESTORING EVENT RECORD",
+      title: "この公演の記録を復元しています",
+      text: "ログイン状態を確認しています……",
+    });
   }
 
-  await loadEvent();
+  const token = getToken();
+
+  try {
+    if (token) {
+      try {
+        const me = await api("me", { token });
+        currentUser = me.user;
+
+        if ($("logoutBtn")) {
+          $("logoutBtn").classList.remove("hidden");
+        }
+
+        if ($("authNotice")) {
+          $("authNotice").classList.add("hidden");
+        }
+      } catch (err) {
+        localStorage.removeItem(TOKEN_KEY);
+        currentUser = null;
+        showAuthNotice();
+      }
+    } else {
+      showAuthNotice();
+    }
+
+    if (window.RSLoader) {
+      RSLoader.update({
+        label: "RESTORING EVENT RECORD",
+        title: "この公演の記録を復元しています",
+        text: "スプレッドシートから公演情報を読み込んでいます……",
+      });
+    }
+
+    await loadEvent();
+  } finally {
+    if (window.RSLoader) {
+      RSLoader.hide();
+    }
+  }
 }
 
 async function api(action, data = {}) {
