@@ -764,10 +764,15 @@ function showAuth() {
 }
 
 function showMember() {
-  if ($("authSection")) $("authSection").classList.add("hidden");
-  if ($("memberSection")) $("memberSection").classList.remove("hidden");
-  if ($("logoutBtn")) $("logoutBtn").classList.remove("hidden");
-  switchTab("games");
+  const loading = $("memberLoading");
+
+  if (loading) {
+    loading.classList.add("hidden");
+  }
+
+  $("authSection").classList.add("hidden");
+  $("memberSection").classList.remove("hidden");
+  $("logoutBtn").classList.remove("hidden");
 }
 
 function getToken() {
