@@ -146,51 +146,56 @@
 </script>
 
   <link rel="stylesheet" href="style.css?v=game-library2" />
-  <link rel="stylesheet" href="loading-creepy.css?v=20260805-1818" />
+  <link rel="stylesheet" href="loading-creepy.css?v=fog-20260805-1842" />
   <script src="https://unpkg.com/html5-qrcode" defer></script>
 </head>
 <body>
-
-  <!-- 会員情報の読み込み画面 -->
   <div
     id="memberLoadingOverlay"
     class="member-loading-overlay"
     role="status"
     aria-live="polite"
+    aria-hidden="false"
   >
+    <div class="member-loading-fog member-loading-fog-1" aria-hidden="true"></div>
+    <div class="member-loading-fog member-loading-fog-2" aria-hidden="true"></div>
+    <div class="member-loading-fog member-loading-fog-3" aria-hidden="true"></div>
+
     <div class="member-loading-content">
-
-      <p class="member-loading-brand">
-        RIDDLE STORY MEMBER
-      </p>
-
-      <div class="member-loading-symbol" aria-hidden="true">
-        <span class="member-loading-ring ring-1"></span>
-        <span class="member-loading-ring ring-2"></span>
-        <span class="member-loading-ring ring-3"></span>
-        <span class="member-loading-core">R</span>
-      </div>
-
-      <p class="member-loading-label">
-        ACCESSING YOUR STORY
-      </p>
+      <p class="member-loading-brand">RIDDLE STORY MEMBER</p>
+      <p class="member-loading-label">ACCESSING YOUR STORY</p>
 
       <h1>物語への扉を開いています</h1>
 
       <p id="memberLoadingText" class="member-loading-text">
-        会員情報を確認しています…
+        会員情報を確認しています……
       </p>
 
-      <div class="member-loading-dots" aria-hidden="true">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
+      <div class="member-loading-progress">
+        <div class="member-loading-progress-meta">
+          <span>LOADING</span>
+          <span id="memberLoadingPercent">0%</span>
+        </div>
 
+        <div
+          id="memberLoadingProgressTrack"
+          class="member-loading-progress-track"
+          role="progressbar"
+          aria-label="読み込み状況"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+        >
+          <span
+            id="memberLoadingProgressBar"
+            class="member-loading-progress-bar"
+          ></span>
+        </div>
+      </div>
     </div>
   </div>
 
-  <header class="site-header">
+<header class="site-header">
     <div>
       <p class="eyebrow">RIDDLE STORY MEMBERS</p>
       <h1>会員サイト</h1>
@@ -418,7 +423,7 @@
     <div id="message" class="message hidden"></div>
   </main>
 
-  <script src="loading.js?v=20260805-1818"></script>
-  <script src="app.js?v=20260805-1818"></script>
+  <script src="loading.js?v=fog-20260805-1842"></script>
+  <script src="app.js?v=fog-20260805-1842"></script>
 </body>
 </html>
