@@ -67,7 +67,7 @@ async function init() {
       RSLoader.update({
         label: "RESTORING EVENT RECORD",
         title: "この公演の記録を復元しています",
-        text: "スプレッドシートから公演情報を読み込んでいます……",
+        text: "公演情報を読み込んでいます……",
       });
     }
 
