@@ -752,9 +752,15 @@ function switchTab(tab) {
 }
 
 function showAuth() {
-  if ($("authSection")) $("authSection").classList.remove("hidden");
-  if ($("memberSection")) $("memberSection").classList.add("hidden");
-  if ($("logoutBtn")) $("logoutBtn").classList.add("hidden");
+  const loading = $("memberLoading");
+
+  if (loading) {
+    loading.classList.add("hidden");
+  }
+
+  $("authSection").classList.remove("hidden");
+  $("memberSection").classList.add("hidden");
+  $("logoutBtn").classList.add("hidden");
 }
 
 function showMember() {
