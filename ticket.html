@@ -9,9 +9,42 @@
   <link rel="icon" type="image/png" href="favicon.png" />
 <link rel="apple-touch-icon" href="favicon.png" />
 
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=20260805-1830" />
+  <link rel="stylesheet" href="loading-creepy.css?v=20260805-1830" />
 </head>
 <body>
+  <!-- 公演一覧の読み込み画面 -->
+  <div
+    id="memberLoadingOverlay"
+    class="member-loading-overlay"
+    role="status"
+    aria-live="polite"
+  >
+    <div class="member-loading-content">
+      <p class="member-loading-brand">RIDDLE STORY TICKET</p>
+
+      <div class="member-loading-symbol" aria-hidden="true">
+        <span class="member-loading-ring ring-1"></span>
+        <span class="member-loading-ring ring-2"></span>
+        <span class="member-loading-ring ring-3"></span>
+        <span class="member-loading-core">R</span>
+      </div>
+
+      <p class="member-loading-label">SEARCHING THE ARCHIVE</p>
+      <h1>公開された物語を探索しています</h1>
+
+      <p id="memberLoadingText" class="member-loading-text">
+        公演一覧を読み込んでいます……
+      </p>
+
+      <div class="member-loading-dots" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </div>
+
   <header class="site-header">
     <div>
       <p class="eyebrow">RIDDLE STORY TICKET</p>
@@ -57,6 +90,7 @@
     <div id="message" class="message hidden"></div>
   </main>
 
-  <script src="ticket.js"></script>
+  <script src="loading.js?v=20260805-1830"></script>
+  <script src="ticket.js?v=20260805-1830"></script>
 </body>
 </html>
