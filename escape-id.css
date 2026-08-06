@@ -1,7 +1,4 @@
-.event-card.is-escape-id {
-  overflow: visible;
-}
-
+/* ESCAPE.ID連携公演の一覧バッジ */
 .event-badge-row {
   display: flex;
   flex-wrap: wrap;
@@ -16,19 +13,9 @@
   letter-spacing: 0.08em;
 }
 
-.escape-calendar-toggle {
-  width: 100%;
+/* チケットページ内のカレンダー */
+#escapeArea {
   margin-top: 8px;
-  cursor: pointer;
-  border: 0;
-  font: inherit;
-  text-align: center;
-}
-
-.escape-id-panel {
-  margin-top: 18px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  padding-top: 18px;
 }
 
 .escape-id-loading,
@@ -49,6 +36,7 @@
 .escape-id-spinner {
   width: 18px;
   height: 18px;
+  flex: 0 0 auto;
   border: 2px solid rgba(255, 255, 255, 0.25);
   border-top-color: currentColor;
   border-radius: 50%;
@@ -60,12 +48,7 @@
 }
 
 .escape-id-calendar {
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 18px;
-  padding: 16px;
-  background:
-    radial-gradient(circle at top right, rgba(80, 224, 184, 0.08), transparent 38%),
-    rgba(8, 12, 18, 0.72);
+  width: 100%;
 }
 
 .escape-id-calendar-head,
@@ -77,9 +60,13 @@
   gap: 12px;
 }
 
-.escape-id-calendar-head h4 {
+.escape-id-calendar-head {
+  margin-bottom: 16px;
+}
+
+.escape-id-calendar-head h3 {
   margin: 2px 0 0;
-  font-size: 1.2rem;
+  font-size: clamp(1.2rem, 4vw, 1.7rem);
 }
 
 .escape-id-kicker {
@@ -91,13 +78,13 @@
 
 .escape-id-month-actions {
   display: flex;
-  gap: 7px;
+  gap: 8px;
 }
 
 .escape-id-month-actions button {
-  width: 42px;
-  min-width: 42px;
-  height: 42px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
   padding: 0;
   font-size: 1.5rem;
 }
@@ -106,78 +93,135 @@
 .escape-id-days {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 6px;
+  gap: 7px;
 }
 
 .escape-id-weekdays {
-  margin-top: 18px;
   margin-bottom: 7px;
   text-align: center;
-  font-size: 0.72rem;
-  opacity: 0.58;
+  font-size: 0.78rem;
+  font-weight: 700;
+  opacity: 0.78;
+}
+
+.escape-id-weekdays .is-sunday {
+  color: #ff8e9b;
+}
+
+.escape-id-weekdays .is-saturday {
+  color: #82b8ff;
 }
 
 .escape-id-day {
+  position: relative;
   min-width: 0;
   aspect-ratio: 1 / 1;
-  padding: 5px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  min-height: 78px;
+  padding: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 7px;
   color: inherit;
   background: rgba(255, 255, 255, 0.035);
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   justify-content: space-between;
-  align-items: center;
+  text-align: left;
   cursor: pointer;
-}
-
-.escape-id-day:disabled,
-.escape-id-day.is-blank {
-  opacity: 0.22;
-  cursor: default;
+  transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
 }
 
 .escape-id-day:not(:disabled):hover {
-  transform: translateY(-1px);
-  border-color: rgba(255, 255, 255, 0.32);
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.42);
+}
+
+.escape-id-day:disabled {
+  cursor: default;
+}
+
+.escape-id-day.is-blank {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.escape-id-day.is-no-event {
+  opacity: 0.42;
 }
 
 .escape-id-day.is-selected {
-  outline: 2px solid rgba(255, 255, 255, 0.85);
+  outline: 2px solid rgba(255, 255, 255, 0.95);
   outline-offset: 2px;
+  opacity: 1;
+}
+
+.escape-id-day.is-saturday {
+  color: #d5e8ff;
+  background: rgba(66, 135, 235, 0.16);
+  border-color: rgba(102, 163, 255, 0.35);
+}
+
+.escape-id-day.is-sunday,
+.escape-id-day.is-holiday {
+  color: #ffe0e4;
+  background: rgba(235, 74, 99, 0.16);
+  border-color: rgba(255, 106, 130, 0.38);
+}
+
+.escape-id-day-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 4px;
 }
 
 .escape-id-day-number {
-  font-size: 0.78rem;
-  align-self: flex-start;
-}
-
-.escape-id-day-mark {
-  font-size: 1.12rem;
+  font-size: 0.9rem;
   font-weight: 800;
   line-height: 1;
 }
 
-.escape-id-day.is-many,
-.escape-id-slot.is-many,
-.escape-id-vacancy.is-many {
-  border-color: rgba(72, 222, 171, 0.48);
-  background: rgba(72, 222, 171, 0.11);
+.escape-id-holiday-label {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 0.62rem;
+  font-weight: 900;
 }
 
-.escape-id-day.is-few,
-.escape-id-slot.is-few,
-.escape-id-vacancy.is-few {
-  border-color: rgba(255, 194, 78, 0.55);
-  background: rgba(255, 194, 78, 0.11);
+.escape-id-holiday-name {
+  min-height: 1.35em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.58rem;
+  opacity: 0.84;
 }
 
-.escape-id-day.is-full,
-.escape-id-slot.is-full,
-.escape-id-vacancy.is-full {
-  border-color: rgba(255, 102, 117, 0.45);
-  background: rgba(255, 102, 117, 0.08);
+.escape-id-day-mark {
+  align-self: flex-end;
+  font-size: 1.24rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.escape-id-day.is-many .escape-id-day-mark,
+.legend-many {
+  color: #64e6b2;
+}
+
+.escape-id-day.is-few .escape-id-day-mark,
+.legend-few {
+  color: #ffd06a;
+}
+
+.escape-id-day.is-full .escape-id-day-mark,
+.legend-full {
+  color: #ff8795;
 }
 
 .escape-id-legend {
@@ -185,8 +229,8 @@
   flex-wrap: wrap;
   gap: 9px 14px;
   margin-top: 14px;
-  font-size: 0.72rem;
-  opacity: 0.8;
+  font-size: 0.75rem;
+  opacity: 0.88;
 }
 
 .escape-id-legend span {
@@ -194,13 +238,13 @@
 }
 
 .escape-id-slots {
-  margin-top: 18px;
-  padding-top: 16px;
+  margin-top: 20px;
+  padding-top: 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .escape-id-slot-heading {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .escape-id-vacancy {
@@ -210,9 +254,27 @@
   font-size: 0.72rem;
 }
 
+.escape-id-vacancy.is-many,
+.escape-id-slot.is-many {
+  border-color: rgba(72, 222, 171, 0.48);
+  background: rgba(72, 222, 171, 0.1);
+}
+
+.escape-id-vacancy.is-few,
+.escape-id-slot.is-few {
+  border-color: rgba(255, 194, 78, 0.55);
+  background: rgba(255, 194, 78, 0.1);
+}
+
+.escape-id-vacancy.is-full,
+.escape-id-slot.is-full {
+  border-color: rgba(255, 102, 117, 0.45);
+  background: rgba(255, 102, 117, 0.08);
+}
+
 .escape-id-slot-list {
   display: grid;
-  gap: 8px;
+  gap: 9px;
 }
 
 .escape-id-slot {
@@ -220,25 +282,25 @@
   grid-template-columns: minmax(100px, 1fr) auto auto;
   align-items: center;
   gap: 10px;
-  padding: 12px 13px;
+  padding: 13px 14px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
+  border-radius: 11px;
   color: inherit;
   text-decoration: none;
 }
 
 .escape-id-slot:not(.is-disabled):hover {
   transform: translateY(-1px);
-  border-color: rgba(255, 255, 255, 0.38);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .escape-id-slot-time {
-  font-weight: 750;
+  font-weight: 800;
 }
 
 .escape-id-slot-status,
 .escape-id-slot-action {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
 }
 
 .escape-id-slot.is-disabled {
@@ -246,40 +308,53 @@
 }
 
 .escape-id-source {
-  margin-top: 16px;
-  padding-top: 13px;
+  margin-top: 18px;
+  padding-top: 14px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   flex-wrap: wrap;
-  font-size: 0.72rem;
-  opacity: 0.82;
+  font-size: 0.75rem;
+  opacity: 0.84;
 }
 
 .escape-id-external-link {
   color: inherit;
-  font-weight: 700;
+  font-weight: 800;
 }
 
-.escape-id-error p {
+.escape-id-error p,
+.escape-id-empty strong {
+  display: block;
   margin-bottom: 12px;
 }
 
-@media (max-width: 620px) {
-  .escape-id-calendar {
-    padding: 12px;
-  }
-
+@media (max-width: 700px) {
   .escape-id-weekdays,
   .escape-id-days {
     gap: 4px;
   }
 
   .escape-id-day {
-    border-radius: 9px;
-    padding: 4px;
+    min-height: 58px;
+    padding: 5px;
+    border-radius: 5px;
+  }
+
+  .escape-id-day-number {
+    font-size: 0.76rem;
   }
 
   .escape-id-day-mark {
-    font-size: 0.94rem;
+    font-size: 1rem;
+  }
+
+  .escape-id-holiday-label {
+    min-width: 17px;
+    height: 17px;
+    font-size: 0.52rem;
+  }
+
+  .escape-id-holiday-name {
+    display: none;
   }
 
   .escape-id-slot {
@@ -288,5 +363,28 @@
 
   .escape-id-slot-action {
     grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 420px) {
+  .escape-id-calendar-head {
+    align-items: flex-end;
+  }
+
+  .escape-id-day {
+    min-height: 48px;
+    padding: 4px;
+  }
+
+  .escape-id-day-number {
+    font-size: 0.68rem;
+  }
+
+  .escape-id-day-mark {
+    font-size: 0.9rem;
+  }
+
+  .escape-id-holiday-label {
+    display: none;
   }
 }
