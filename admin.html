@@ -9,7 +9,7 @@
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="apple-touch-icon" href="favicon.png" />
 
-  <link rel="stylesheet" href="admin.css?v=event-sort1" />
+  <link rel="stylesheet" href="admin.css?v=escape-id-20260806-1" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 </head>
 <body>
@@ -77,29 +77,91 @@
             </label>
 
             <label>
-              ショップURL 有料用
-              <input id="eventShopUrl" type="url" placeholder="https://..." />
+              チケット連携
+              <select id="eventTicketProvider">
+                <option value="member">会員サイト（従来方式）</option>
+                <option value="escape_id">ESCAPE.ID</option>
+              </select>
             </label>
 
-            <label>
-              有料認証コード
-              <input id="eventPaidCode" type="text" placeholder="購入後に表示するコード" />
-            </label>
+            <section id="escapeIdFields" class="provider-fields hidden" aria-labelledby="escapeIdFieldsTitle">
+              <div class="provider-fields__head">
+                <div>
+                  <p class="eyebrow">ESCAPE.ID LINK</p>
+                  <h3 id="escapeIdFieldsTitle">ESCAPE.ID連携設定</h3>
+                </div>
+                <span class="provider-chip">外部チケット</span>
+              </div>
 
-            <label>
-              有料/通常プレイURL
-              <input id="eventPlayUrl" type="url" placeholder="https://..." />
-            </label>
+              <div class="provider-field">
+                <label for="eventEscapeApiUrl">空き状況API URL（貼り付け用）</label>
+                <div class="input-button-row">
+                  <input id="eventEscapeApiUrl" type="url" placeholder="https://pubapi.escape.id/e/.../loc/.../slots.json" />
+                  <button id="parseEscapeApiBtn" class="ghost" type="button">IDを読み取る</button>
+                </div>
+                <small>この欄は保存されません。URLから下の2つのIDを自動入力します。</small>
+              </div>
 
-            <label>
-              ゲーム認証用 gameId
-              <input id="eventGameId" type="text" placeholder="select-answer" />
-            </label>
+              <label>
+                ESCAPE.ID 公演ID
+                <input id="eventEscapeEventId" type="text" placeholder="frQZMnViQeMY" />
+              </label>
 
-            <label>
-              ゲーム公開URL 無料token発行用
-              <input id="eventGameBaseUrl" type="url" placeholder="https://riddle-nazo-story.github.io/select-answer/" />
-            </label>
+              <label>
+                ESCAPE.ID 会場ID
+                <input id="eventEscapeLocationId" type="text" placeholder="4GG2hvxdviIU" />
+              </label>
+
+              <label>
+                ESCAPE.ID チケットページURL
+                <input id="eventEscapePurchaseUrl" type="url" placeholder="https://escape.id/..." />
+                <small>カレンダーで日時を選択したあと、このページへ移動します。</small>
+              </label>
+            </section>
+
+            <section id="memberTicketFields" class="provider-fields" aria-labelledby="memberTicketFieldsTitle">
+              <div class="provider-fields__head">
+                <div>
+                  <p class="eyebrow">MEMBER TICKET</p>
+                  <h3 id="memberTicketFieldsTitle">会員サイトのチケット設定</h3>
+                </div>
+              </div>
+
+              <label>
+                ショップURL 有料用
+                <input id="eventShopUrl" type="url" placeholder="https://..." />
+              </label>
+
+              <label>
+                有料認証コード
+                <input id="eventPaidCode" type="text" placeholder="購入後に表示するコード" />
+              </label>
+
+              <label>
+                有料/通常プレイURL
+                <input id="eventPlayUrl" type="url" placeholder="https://..." />
+              </label>
+
+              <label>
+                ゲーム認証用 gameId
+                <input id="eventGameId" type="text" placeholder="select-answer" />
+              </label>
+
+              <label>
+                ゲーム公開URL 無料token発行用
+                <input id="eventGameBaseUrl" type="url" placeholder="https://riddle-nazo-story.github.io/select-answer/" />
+              </label>
+
+              <label>
+                URL有効時間
+                <input id="eventTicketValidHours" type="number" min="1" value="24" />
+              </label>
+
+              <label>
+                無料チケット最大枚数
+                <input id="eventMaxFreeTickets" type="number" min="1" value="1" />
+              </label>
+            </section>
 
             <label>
               メインビジュアル画像URL
@@ -114,11 +176,6 @@
             <label>
               注意事項
               <textarea id="eventNotes" placeholder="1行ずつ注意事項を書くと表示しやすいです"></textarea>
-            </label>
-
-            <label>
-              無料チケット最大枚数
-              <input id="eventMaxFreeTickets" type="number" min="1" value="1" />
             </label>
 
             <label>
@@ -287,6 +344,6 @@
     <div id="adminMessage" class="message hidden"></div>
   </main>
 
-  <script src="admin.js?v=event-sort1"></script>
+  <script src="admin.js?v=escape-id-20260806-1"></script>
 </body>
 </html>
