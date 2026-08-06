@@ -7,10 +7,11 @@
   <title>RIDDLE STORY チケットページ</title>
 
   <link rel="icon" type="image/png" href="favicon.png" />
-<link rel="apple-touch-icon" href="favicon.png" />
+  <link rel="apple-touch-icon" href="favicon.png" />
 
-  <link rel="stylesheet" href="style.css?v=event-box-split1" />
+  <link rel="stylesheet" href="style.css?v=20260807-calendar1" />
   <link rel="stylesheet" href="loading-creepy.css?v=fog-20260805-1842" />
+  <link rel="stylesheet" href="escape-id.css?v=20260807-calendar1" />
 </head>
 <body>
   <div
@@ -49,16 +50,13 @@
           aria-valuemax="100"
           aria-valuenow="0"
         >
-          <span
-            id="memberLoadingProgressBar"
-            class="member-loading-progress-bar"
-          ></span>
+          <span id="memberLoadingProgressBar" class="member-loading-progress-bar"></span>
         </div>
       </div>
     </div>
   </div>
 
-<header class="site-header">
+  <header class="site-header">
     <div>
       <p class="eyebrow">RIDDLE STORY TICKET</p>
       <h1>チケットページ</h1>
@@ -73,14 +71,14 @@
 
   <main>
     <section id="authNotice" class="card hidden">
-      <h2>ログインが必要です</h2>
-      <p class="muted">チケットの購入・発行にはログインが必要です。</p>
+      <h2>ログインしていません</h2>
+      <p class="muted">公演内容とESCAPE.IDの日程は確認できます。会員チケットの発行・認証時にログインが必要です。</p>
       <a href="index.html" class="game-link">会員サイトでログインする</a>
     </section>
 
     <section id="notFound" class="card hidden">
       <h2>公演が見つかりません</h2>
-      <p class="muted">URLの eventId を確認してください。</p>
+      <p class="muted">URLのeventIdを確認してください。</p>
       <a href="ticket.html" class="game-link">公演一覧へ戻る</a>
     </section>
 
@@ -108,7 +106,7 @@
       </section>
 
       <section class="ticket-box">
-        <h2>チケット</h2>
+        <h2 id="ticketBoxTitle">チケット</h2>
 
         <div id="freeArea" class="hidden">
           <p class="muted">発行枚数を選択し、確認画面へ進んでください。</p>
@@ -124,7 +122,7 @@
         <div id="paidArea" class="hidden">
           <p class="muted">ショップで購入後、表示されたコードを入力してください。</p>
 
-          <a id="shopLink" class="game-link" href="#" target="_blank" rel="noopener">
+          <a id="shopLink" class="game-link" href="#" target="_blank" rel="noopener noreferrer">
             ショップで購入する
           </a>
 
@@ -134,6 +132,13 @@
           </label>
 
           <button id="showPaidConfirmBtn" type="button">確認画面へ</button>
+        </div>
+
+        <div id="escapeArea" class="hidden" aria-live="polite">
+          <div class="escape-id-loading">
+            <span class="escape-id-spinner" aria-hidden="true"></span>
+            ESCAPE.IDから日程を読み込んでいます……
+          </div>
         </div>
       </section>
 
@@ -157,6 +162,6 @@
   </main>
 
   <script src="loading.js?v=fog-20260805-1842"></script>
-  <script src="ticket-event.js?v=fog-20260805-1842"></script>
+  <script src="ticket-event.js?v=20260807-calendar1"></script>
 </body>
 </html>
