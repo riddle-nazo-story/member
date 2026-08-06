@@ -7,11 +7,11 @@
   <title>RIDDLE STORY チケットサイト</title>
 
   <link rel="icon" type="image/png" href="favicon.png" />
-<link rel="apple-touch-icon" href="favicon.png" />
+  <link rel="apple-touch-icon" href="favicon.png" />
 
-  <link rel="stylesheet" href="style.css?v=20260805-1830" />
+  <link rel="stylesheet" href="style.css?v=20260807-calendar1" />
   <link rel="stylesheet" href="loading-creepy.css?v=fog-20260805-1842" />
-  <link rel="stylesheet" href="escape-id.css?v=20260806-1" />
+  <link rel="stylesheet" href="escape-id.css?v=20260807-calendar1" />
 </head>
 <body>
   <div
@@ -50,16 +50,13 @@
           aria-valuemax="100"
           aria-valuenow="0"
         >
-          <span
-            id="memberLoadingProgressBar"
-            class="member-loading-progress-bar"
-          ></span>
+          <span id="memberLoadingProgressBar" class="member-loading-progress-bar"></span>
         </div>
       </div>
     </div>
   </div>
 
-<header class="site-header">
+  <header class="site-header">
     <div>
       <p class="eyebrow">RIDDLE STORY TICKET</p>
       <h1>チケットサイト</h1>
@@ -67,7 +64,7 @@
 
     <div class="header-actions">
       <a href="index.html"><button class="ghost" type="button">会員サイトへ</button></a>
-      <button id="logoutBtn" class="ghost hidden">ログアウト</button>
+      <button id="logoutBtn" class="ghost hidden" type="button">ログアウト</button>
     </div>
   </header>
 
@@ -75,7 +72,7 @@
     <section class="hero">
       <p class="eyebrow">RIDDLE STORY TICKET</p>
       <h2>TICKET</h2>
-      <p>会員限定チケットの発行や、ESCAPE.IDと連携した公演の日程・空き状況を確認できます。</p>
+      <p>公開中の公演から、詳細ページとチケット情報を確認できます。</p>
       <nav class="site-nav">
         <a href="index.html">MEMBER</a>
         <a href="#ticketSection">EVENT</a>
@@ -83,8 +80,8 @@
     </section>
 
     <section id="authNotice" class="card hidden">
-      <h2>ログインが必要です</h2>
-      <p class="muted">チケットサイトを利用するには、会員サイトでログインしてください。</p>
+      <h2>ログインしていません</h2>
+      <p class="muted">公演一覧は確認できます。会員チケットの発行・認証時にログインが必要です。</p>
       <a href="index.html" class="game-link">会員サイトでログインする</a>
     </section>
 
@@ -105,6 +102,6 @@
   </main>
 
   <script src="loading.js?v=fog-20260805-1842"></script>
-  <script src="ticket.js?v=escape-id-20260806-1"></script>
+  <script src="ticket.js?v=20260807-calendar1"></script>
 </body>
 </html>
