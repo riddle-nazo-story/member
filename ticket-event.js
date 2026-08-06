@@ -67,7 +67,7 @@ async function init() {
       RSLoader.update({
         label: "RESTORING EVENT RECORD",
         title: "この公演の記録を復元しています",
-        text: "公演情報を読み込んでいます……",
+        text: "スプレッドシートから公演情報を読み込んでいます……",
       });
     }
 
@@ -112,6 +112,12 @@ async function loadEvent() {
 }
 
 function renderEvent(event) {
+  if (String(event.ticketProvider || "member") === "escape_id") {
+    const url = event.escapePurchaseUrl || "ticket.html";
+    location.replace(url);
+    return;
+  }
+
   $("eventSection").classList.remove("hidden");
   $("eventTitle").textContent = event.title;
   $("eventDescription").textContent = event.description || "";
