@@ -388,3 +388,70 @@
     display: none;
   }
 }
+
+/* ==========================================
+   祝日・土日の視認性アップ
+   2026/08/11（山の日）など、色付きセルでも
+   日付がはっきり読めるようにする
+========================================== */
+
+.escape-id-day.is-sunday .escape-id-day-number,
+.escape-id-day.is-holiday .escape-id-day-number {
+  color: #d92f4c !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.escape-id-day.is-saturday .escape-id-day-number {
+  color: #246fd1 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/* 祝日は日付を少し大きく・太く */
+.escape-id-day.is-holiday .escape-id-day-number {
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+/* 祝日名が日付や空き状況と重ならないように調整 */
+.escape-id-day.is-holiday .escape-id-holiday-name {
+  color: #b52b42;
+  opacity: 0.95;
+  font-weight: 700;
+}
+
+/* 祝日の「祝」マークは主張しすぎない */
+.escape-id-day.is-holiday .escape-id-holiday-label {
+  color: #a9223b;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(217, 47, 76, 0.24);
+}
+
+/* 明るい背景でも読めるようにセル内文字のコントラストを確保 */
+.escape-id-day.is-sunday,
+.escape-id-day.is-holiday {
+  background: rgba(255, 89, 115, 0.10);
+  border-color: rgba(217, 47, 76, 0.28);
+}
+
+.escape-id-day.is-saturday {
+  background: rgba(69, 137, 235, 0.09);
+  border-color: rgba(36, 111, 209, 0.25);
+}
+
+/* 選択中の祝日は枠を濃くして日付を埋もれさせない */
+.escape-id-day.is-selected.is-holiday,
+.escape-id-day.is-selected.is-sunday {
+  outline-color: #d92f4c;
+}
+
+.escape-id-day.is-selected.is-saturday {
+  outline-color: #246fd1;
+}
+
+@media (max-width: 700px) {
+  .escape-id-day.is-holiday .escape-id-day-number {
+    font-size: 0.82rem;
+  }
+}
