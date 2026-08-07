@@ -145,7 +145,7 @@
   });
 </script>
 
-  <link rel="stylesheet" href="style.css?v=game-library2" />
+  <link rel="stylesheet" href="style.css?v=account-settings-20260807" />
   <link rel="stylesheet" href="loading-creepy.css?v=fog-20260805-1842" />
   <script src="https://unpkg.com/html5-qrcode" defer></script>
 </head>
@@ -203,7 +203,8 @@
 
     <div class="header-actions">
       <a href="ticket.html"><button class="ghost" type="button">チケット購入/発行</button></a>
-      <button id="logoutBtn" class="ghost hidden">ログアウト</button>
+      <button id="accountBtn" class="ghost hidden" type="button">アカウント設定</button>
+      <button id="logoutBtn" class="ghost hidden" type="button">ログアウト</button>
     </div>
   </header>
 
@@ -365,6 +366,7 @@
         <button class="tab active" data-tab="games" type="button">ゲームをプレイ</button>
         <button class="tab" data-tab="stamp" type="button">スタンプ</button>
         <button class="tab" data-tab="history" type="button">参加・取得履歴</button>
+        <button class="tab" data-tab="account" type="button">アカウント設定</button>
       </nav>
 
       <section id="tab-games" class="tab-panel">
@@ -418,12 +420,98 @@
           </div>
         </div>
       </section>
+
+      <section id="tab-account" class="tab-panel hidden">
+        <div class="account-settings-grid">
+          <div class="card account-settings-card">
+            <p class="eyebrow">PASSWORD</p>
+            <h2>パスワード変更</h2>
+            <p class="muted">
+              現在のパスワードを確認したうえで、新しいパスワードへ変更します。
+              変更すると、ほかの端末のログイン状態は解除されます。
+            </p>
+
+            <label>
+              現在のパスワード
+              <input
+                id="currentPassword"
+                type="password"
+                autocomplete="current-password"
+                placeholder="現在のパスワード"
+              />
+            </label>
+
+            <label>
+              新しいパスワード
+              <input
+                id="newPassword"
+                type="password"
+                autocomplete="new-password"
+                placeholder="6文字以上"
+              />
+            </label>
+
+            <label>
+              新しいパスワード（確認）
+              <input
+                id="newPasswordConfirm"
+                type="password"
+                autocomplete="new-password"
+                placeholder="もう一度入力"
+              />
+            </label>
+
+            <button id="changePasswordBtn" type="button">パスワードを変更する</button>
+          </div>
+
+          <div class="card account-danger-card">
+            <p class="eyebrow danger-eyebrow">DELETE ACCOUNT</p>
+            <h2>退会</h2>
+
+            <div class="danger-notice">
+              <strong>この操作は取り消せません。</strong>
+              <p>
+                退会すると、会員情報・会員サイトで発行したチケット・スタンプ履歴・参加履歴など、
+                このアカウントに紐づく情報を削除します。
+              </p>
+            </div>
+
+            <label>
+              現在のパスワード
+              <input
+                id="deleteAccountPassword"
+                type="password"
+                autocomplete="current-password"
+                placeholder="本人確認のため入力"
+              />
+            </label>
+
+            <label>
+              確認のため「退会する」と入力
+              <input
+                id="deleteAccountPhrase"
+                type="text"
+                autocomplete="off"
+                placeholder="退会する"
+              />
+            </label>
+
+            <button id="deleteAccountBtn" class="danger-button" type="button">
+              退会する
+            </button>
+
+            <p class="account-delete-note">
+              ※ ESCAPE.IDなど外部サービスで購入したチケットや、外部サービス側の登録情報は削除されません。
+            </p>
+          </div>
+        </div>
+      </section>
     </section>
 
     <div id="message" class="message hidden"></div>
   </main>
 
   <script src="loading.js?v=fog-20260805-1842"></script>
-  <script src="app.js?v=fog-20260805-1842"></script>
+  <script src="app.js?v=account-settings-20260807"></script>
 </body>
 </html>
