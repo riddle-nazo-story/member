@@ -174,6 +174,9 @@ function bindEvents() {
   addClick("verifyEmailBtn", verifyEmailCode);
   addClick("resendEmailCodeBtn", resendEmailCode);
   addClick("saveCampaignOptInBtn", saveCampaignOptIn);
+  addClick("accountBtn", openAccountSettings);
+  addClick("changePasswordBtn", changePassword);
+  addClick("deleteAccountBtn", deleteAccount);
 
   document.querySelectorAll(".tab").forEach((btn) => {
     btn.addEventListener("click", () => switchTab(btn.dataset.tab));
@@ -804,6 +807,131 @@ function renderPager(totalPages, current, type) {
   `;
 }
 
+
+/* =========================
+   アカウント設定
+========================= */
+
+function openAccountSettings() {
+  switchTab("account");
+
+  const section = $("tab-account");
+  if (section) {
+    section.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+async function changePassword() {
+  try {
+    const currentPassword = $("currentPassword")?.value || "";
+    const newPassword = $("newPassword")?.value || "";
+    const confirmPassword = $("newPasswordConfirm")?.value || "";
+
+    if (!currentPassword) {
+      showMessage("現在のパスワードを入力してください。", "error");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      showMessage("新しいパスワードは6文字以上にしてください。", "error");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      showMessage("新しいパスワードが一致しません。", "error");
+      return;
+    }
+
+    if (currentPassword === newPassword) {
+      showMessage("現在とは異なるパスワードを設定してください。", "error");
+      return;
+    }
+
+    const button = $("changePasswordBtn");
+    if (button) {
+      button.disabled = true;
+      button.textContent = "変更しています…";
+    }
+
+    const res = await api("changePassword", {
+      token: getToken(),
+      currentPassword,
+      newPassword,
+    });
+
+    if ($("currentPassword")) $("currentPassword").value = "";
+    if ($("newPassword")) $("newPassword").value = "";
+    if ($("newPasswordConfirm")) $("newPasswordConfirm").value = "";
+
+    showMessage(res.message || "パスワードを変更しました。", "ok");
+  } catch (err) {
+    showMessage(err.message, "error");
+  } finally {
+    const button = $("changePasswordBtn");
+    if (button) {
+      button.disabled = false;
+      button.textContent = "パスワードを変更する";
+    }
+  }
+}
+
+async function deleteAccount() {
+  try {
+    const password = $("deleteAccountPassword")?.value || "";
+    const phrase = $("deleteAccountPhrase")?.value.trim() || "";
+
+    if (!password) {
+      showMessage("現在のパスワードを入力してください。", "error");
+      return;
+    }
+
+    if (phrase !== "退会する") {
+      showMessage("確認欄に「退会する」と入力してください。", "error");
+      return;
+    }
+
+    const firstConfirm = window.confirm(
+      "本当に退会しますか？\n\n会員情報・会員サイトで発行したチケット・スタンプ履歴・参加履歴などが削除されます。\nこの操作は取り消せません。"
+    );
+
+    if (!firstConfirm) return;
+
+    const secondConfirm = window.confirm(
+      "最終確認です。\n退会処理を実行すると元に戻せません。\n\n退会を実行しますか？"
+    );
+
+    if (!secondConfirm) return;
+
+    const button = $("deleteAccountBtn");
+    if (button) {
+      button.disabled = true;
+      button.textContent = "退会処理中…";
+    }
+
+    const res = await api("deleteAccount", {
+      token: getToken(),
+      password,
+      confirmation: "DELETE",
+    });
+
+    stopQr();
+    localStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(RETURN_TO_KEY);
+    currentUser = null;
+
+    alert(res.message || "退会が完了しました。");
+    location.href = "index.html";
+  } catch (err) {
+    showMessage(err.message, "error");
+
+    const button = $("deleteAccountBtn");
+    if (button) {
+      button.disabled = false;
+      button.textContent = "退会する";
+    }
+  }
+}
+
 /* =========================
    タブ・表示切替
 ========================= */
@@ -838,6 +966,7 @@ function showAuth() {
   $("authSection").classList.remove("hidden");
   $("memberSection").classList.add("hidden");
   $("logoutBtn").classList.add("hidden");
+  $("accountBtn")?.classList.add("hidden");
 }
 
 function showMember() {
@@ -850,6 +979,7 @@ function showMember() {
   $("authSection").classList.add("hidden");
   $("memberSection").classList.remove("hidden");
   $("logoutBtn").classList.remove("hidden");
+  $("accountBtn")?.classList.remove("hidden");
 }
 
 function getToken() {
