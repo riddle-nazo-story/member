@@ -2909,3 +2909,24 @@ button:disabled {
   }
 }
 
+
+/* ==========================================
+   発行済みゲームURL削除
+========================================== */
+
+.game-delete-button {
+  border-color: var(--danger) !important;
+  color: var(--danger) !important;
+  background: #fff !important;
+}
+
+.game-delete-button:hover {
+  background: var(--danger) !important;
+  color: #fff !important;
+}
+
+.game-delete-button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
