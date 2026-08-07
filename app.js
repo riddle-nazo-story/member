@@ -630,6 +630,16 @@ function renderTicketPage() {
                   <button type="button" class="copy-url-btn ghost game-copy-button" data-copy-url="${escapeAttr(t.gameUrl)}">
                     ゲームURLをコピー
                   </button>
+
+                  <button
+                    type="button"
+                    class="delete-url-btn ghost game-delete-button"
+                    data-ticket-id="${escapeAttr(t.ticketId || "")}"
+                    data-game-token="${escapeAttr(t.gameToken || "")}"
+                    data-event-title="${escapeAttr(t.eventTitle || t.eventId || "この公演")}"
+                  >
+                    このURLを削除
+                  </button>
                 ` : ""}
               </div>
 
@@ -673,6 +683,10 @@ function renderTicketPage() {
     btn.addEventListener("click", () => copyUrl(btn.dataset.copyUrl));
   });
 
+  root.querySelectorAll(".delete-url-btn").forEach((btn) => {
+    btn.addEventListener("click", () => deleteIssuedUrl(btn));
+  });
+
   root.querySelectorAll("[data-ticket-page]").forEach((btn) => {
     btn.addEventListener("click", () => {
       ticketPageIndex = Number(btn.dataset.ticketPage);
@@ -680,6 +694,50 @@ function renderTicketPage() {
       root.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   });
+}
+
+
+async function deleteIssuedUrl(button) {
+  try {
+    const ticketId = String(button?.dataset.ticketId || "").trim();
+    const gameToken = String(button?.dataset.gameToken || "").trim();
+    const eventTitle = String(button?.dataset.eventTitle || "この公演").trim();
+
+    if (!ticketId && !gameToken) {
+      showMessage("削除するURLの情報が見つかりません。", "error");
+      return;
+    }
+
+    const ok = window.confirm(
+      `${eventTitle}で発行したこのゲームURLを削除しますか？\n\n` +
+      "削除すると、このURLは会員サイトとスプレッドシートから消え、今後そのtokenではプレイできなくなります。\n" +
+      "この操作は元に戻せません。"
+    );
+
+    if (!ok) return;
+
+    button.disabled = true;
+    const originalText = button.textContent;
+    button.textContent = "削除中…";
+
+    const res = await api("deleteMyIssuedUrl", {
+      token: getToken(),
+      ticketId,
+      gameToken,
+    });
+
+    showMessage(res.message || "ゲームURLを削除しました。", "ok");
+
+    // スプレッドシート側の削除後、一覧も最新状態へ更新
+    await loadMyData();
+  } catch (err) {
+    showMessage(err.message, "error");
+
+    if (button) {
+      button.disabled = false;
+      button.textContent = "このURLを削除";
+    }
+  }
 }
 
 /* =========================
