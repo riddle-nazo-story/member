@@ -885,3 +885,102 @@ button {
 .provider-field > label {
   margin: 0;
 }
+
+
+/* =========================
+   ARG account management
+========================= */
+.arg-admin-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 440px) 1fr;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.arg-section-head,
+.arg-link-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.arg-account-list,
+.arg-game-link-list {
+  display: grid;
+  gap: 10px;
+}
+
+.arg-account-item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  background: #fff;
+  color: var(--text);
+}
+
+.arg-account-item.active,
+.arg-account-item:hover {
+  background: #050505;
+  color: #fff;
+}
+
+.arg-account-item span:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.arg-account-item small {
+  opacity: .7;
+  overflow-wrap: anywhere;
+}
+
+.arg-account-meta {
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.arg-editor {
+  margin-top: 18px;
+}
+
+.arg-divider {
+  border: 0;
+  border-top: 2px solid #050505;
+  margin: 28px 0;
+}
+
+.arg-game-link-card {
+  border: 1px solid #050505;
+  padding: 16px;
+  background: #fff;
+}
+
+.arg-current-url {
+  overflow-wrap: anywhere;
+}
+
+.danger-btn {
+  background: #fff !important;
+  color: var(--danger) !important;
+  border-color: var(--danger) !important;
+}
+
+.danger-btn:hover {
+  background: var(--danger) !important;
+  color: #fff !important;
+}
+
+@media (max-width: 900px) {
+  .arg-admin-layout {
+    grid-template-columns: 1fr;
+  }
+  .arg-section-head,
+  .arg-link-head {
+    flex-direction: column;
+  }
+}
