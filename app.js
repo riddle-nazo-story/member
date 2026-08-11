@@ -7,6 +7,33 @@ const RETURN_TO_KEY = "rs_return_to";
 const $ = (id) => document.getElementById(id);
 
 let currentUser = null;
+
+function isArgAccount(user = currentUser) {
+  return String(user?.accountType || "normal") === "arg";
+}
+
+function applyArgAccountRestrictions(user = currentUser) {
+  const arg = isArgAccount(user);
+
+  // チケット購入/発行への導線
+  document.querySelectorAll('a[href="ticket.html"], a[href^="ticket.html?"]').forEach((el) => {
+    el.classList.toggle("hidden", arg);
+  });
+
+  // スタンプ獲得UIだけを隠す（取得済みスタンプ履歴は残す）
+  const redeemButton = $("redeemStampBtn");
+  const stampAcquireCard = redeemButton ? redeemButton.closest(".card") : null;
+  if (stampAcquireCard) stampAcquireCard.classList.toggle("hidden", arg);
+
+  // アカウント設定（パスワード変更・退会）
+  if ($("accountBtn")) $("accountBtn").classList.toggle("hidden", arg);
+  document.querySelectorAll('.tab[data-tab="account"]').forEach((el) => el.classList.toggle("hidden", arg));
+  if ($("tab-account")) $("tab-account").classList.toggle("hidden", arg);
+
+  // ARGアカウントで禁止タブを開いていた場合はマイページへ戻す
+  const activeAccount = document.querySelector('.tab[data-tab="account"].active');
+  if (arg && activeAccount && $("tab-mypage")) switchTab("mypage");
+}
 let qrScanner = null;
 let qrBusy = false;
 
@@ -47,6 +74,7 @@ async function init() {
     try {
       const res = await api("me", { token });
       currentUser = res.user;
+      applyArgAccountRestrictions(currentUser);
 
       if (window.RSLoader) {
         RSLoader.update({
@@ -250,6 +278,7 @@ async function login() {
 
     localStorage.setItem(TOKEN_KEY, res.token);
     currentUser = res.user;
+    applyArgAccountRestrictions(currentUser);
 
     showMessage("ログインしました。", "ok");
 
@@ -325,6 +354,7 @@ async function register() {
 
     localStorage.setItem(TOKEN_KEY, res.token);
     currentUser = res.user;
+    applyArgAccountRestrictions(currentUser);
 
     showMessage(res.message || "会員登録が完了しました。", "ok");
 
@@ -419,6 +449,11 @@ async function stopQr() {
 }
 
 async function redeemStamp() {
+  if (isArgAccount()) {
+    showMessage("ARG用アカウントではスタンプを取得できません。", "error");
+    return;
+  }
+
   try {
     const rawValue = $("stampCodeInput") ? $("stampCodeInput").value.trim() : "";
     const stampCode = extractStampCode(rawValue);
@@ -466,7 +501,8 @@ async function loadMyData() {
   if ($("userEmail")) $("userEmail").textContent = data.user.email;
   if ($("totalPoint")) $("totalPoint").textContent = data.totalPoint;
   currentUser = data.user;
-renderEmailArea(data.user);
+  applyArgAccountRestrictions(data.user);
+  renderEmailArea(data.user);
 
   renderTickets(data.tickets || []);
   renderParticipations(data.participations || []);
@@ -631,7 +667,7 @@ function renderTicketPage() {
                     ゲームURLをコピー
                   </button>
 
-                  <button
+                  ${!isArgAccount() ? `<button
                     type="button"
                     class="delete-url-btn ghost game-delete-button"
                     data-ticket-id="${escapeAttr(t.ticketId || "")}"
@@ -639,7 +675,7 @@ function renderTicketPage() {
                     data-event-title="${escapeAttr(t.eventTitle || t.eventId || "この公演")}"
                   >
                     このURLを削除
-                  </button>
+                  </button>` : ""}
                 ` : ""}
               </div>
 
@@ -698,6 +734,11 @@ function renderTicketPage() {
 
 
 async function deleteIssuedUrl(button) {
+  if (isArgAccount()) {
+    showMessage("ARG用アカウントではゲームURLを削除できません。", "error");
+    return;
+  }
+
   try {
     const ticketId = String(button?.dataset.ticketId || "").trim();
     const gameToken = String(button?.dataset.gameToken || "").trim();
@@ -880,6 +921,11 @@ function openAccountSettings() {
 }
 
 async function changePassword() {
+  if (isArgAccount()) {
+    showMessage("ARG用アカウントのパスワードは運営側で管理されています。", "error");
+    return;
+  }
+
   try {
     const currentPassword = $("currentPassword")?.value || "";
     const newPassword = $("newPassword")?.value || "";
@@ -934,6 +980,11 @@ async function changePassword() {
 }
 
 async function deleteAccount() {
+  if (isArgAccount()) {
+    showMessage("ARG用アカウントは参加者側から削除できません。", "error");
+    return;
+  }
+
   try {
     const password = $("deleteAccountPassword")?.value || "";
     const phrase = $("deleteAccountPhrase")?.value.trim() || "";
