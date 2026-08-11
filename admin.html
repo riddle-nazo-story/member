@@ -42,6 +42,7 @@
         <button class="admin-tab" data-tab="stamps">スタンプ</button>
         <button class="admin-tab" data-tab="tickets">チケット使用</button>
         <button class="admin-tab" data-tab="users">会員一覧</button>
+        <button class="admin-tab" data-tab="arg">ARGアカウント</button>
         <button class="admin-tab" data-tab="mail">メール送信</button>
       </nav>
 
@@ -292,6 +293,70 @@
           <h2>会員一覧</h2>
           <p class="muted">パスワード情報は表示しません。表示名、メールアドレス、参加数などだけ表示します。</p>
           <div id="usersTable"></div>
+        </section>
+      </section>
+
+      <section id="admin-tab-arg" class="admin-panel hidden">
+        <div class="arg-admin-layout">
+          <section class="card">
+            <p class="eyebrow">ARG ACCOUNT</p>
+            <h2>ARG用アカウント作成</h2>
+            <p class="muted">参加者がRIDDLE STORY MEMBERへ実際にログインして調査するための、運営管理アカウントです。</p>
+
+            <label>表示名<input id="argCreateName" type="text" placeholder="例：佐伯ひより" /></label>
+            <label>ログイン用メールアドレス<input id="argCreateEmail" type="email" placeholder="hiyori@example.com" /></label>
+            <label>ログイン用パスワード<input id="argCreatePassword" type="text" minlength="6" placeholder="6文字以上" /></label>
+            <label>作成日時（任意）<input id="argCreateCreatedAt" type="datetime-local" /></label>
+            <label class="check"><input id="argCreateVerified" type="checkbox" checked />メール認証済みとして作成</label>
+            <button id="createArgAccountBtn" type="button">ARGアカウントを作成</button>
+          </section>
+
+          <section class="card">
+            <div class="arg-section-head">
+              <div><p class="eyebrow">ARG ACCOUNTS</p><h2>ARGアカウント一覧</h2></div>
+              <button id="refreshArgAccountsBtn" type="button" class="ghost small-btn">更新</button>
+            </div>
+            <div id="argAccountsList"></div>
+          </section>
+        </div>
+
+        <section id="argAccountEditor" class="card hidden arg-editor">
+          <div class="arg-section-head">
+            <div><p class="eyebrow">EDIT ACCOUNT</p><h2 id="argEditorTitle">ARGアカウント編集</h2></div>
+            <button id="closeArgEditorBtn" type="button" class="ghost small-btn">閉じる</button>
+          </div>
+
+          <input id="argEditUserId" type="hidden" />
+          <div class="grid two">
+            <div>
+              <label>表示名<input id="argEditName" type="text" /></label>
+              <label>ログイン用メールアドレス<input id="argEditEmail" type="email" /></label>
+              <label>新しいパスワード（変更時のみ）<input id="argEditPassword" type="text" minlength="6" placeholder="空欄なら変更しない" /></label>
+              <label>登録日時<input id="argEditCreatedAt" type="datetime-local" /></label>
+              <label class="check"><input id="argEditVerified" type="checkbox" />メール認証済み</label>
+              <div class="button-row">
+                <button id="saveArgAccountBtn" type="button">アカウント情報を保存</button>
+                <button id="deleteArgAccountBtn" type="button" class="danger-btn">ARGアカウントを削除</button>
+              </div>
+            </div>
+
+            <div>
+              <p class="eyebrow">ISSUE GAME URL</p>
+              <h3>このアカウントにゲームURLを発行</h3>
+              <label>MEMBER上の表示名<input id="argGameTitle" type="text" placeholder="例：記録 No.03" /></label>
+              <label>gameId<input id="argGameId" type="text" placeholder="select-answer" /></label>
+              <label>ゲーム先URL<input id="argGameBaseUrl" type="url" placeholder="https://example.com/game/" /></label>
+              <label>URL有効時間<input id="argGameValidHours" type="number" min="1" value="24" /></label>
+              <label>初期状態<select id="argGameStatus"><option value="unused">unused（未使用）</option><option value="blocked">blocked（無効）</option></select></label>
+              <button id="issueArgGameUrlBtn" type="button">このアカウントにURLを発行</button>
+            </div>
+          </div>
+
+          <hr class="arg-divider" />
+          <p class="eyebrow">GAME URL CONTROL</p>
+          <h3>発行済みゲームURL</h3>
+          <p class="muted">表示名・gameId・ゲーム先URL・有効時間・状態を後から変更できます。</p>
+          <div id="argGameLinks"></div>
         </section>
       </section>
 
