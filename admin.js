@@ -59,6 +59,8 @@ let editingEventId = null;
 let eventOrderDraft = [];
 let eventOrderDirty = false;
 let draggedEventId = null;
+let argAccounts = [];
+let selectedArgUserId = null;
 
 document.addEventListener("DOMContentLoaded", initAdmin);
 
@@ -71,6 +73,14 @@ async function initAdmin() {
   addClick("parseEscapeApiBtn", parseEscapeApiUrl);
   addClick("generateStampBtn", generateStamp);
   addClick("useTicketBtn", useTicket);
+
+  // ARGアカウント管理
+  addClick("createArgAccountBtn", createArgAccount);
+  addClick("refreshArgAccountsBtn", loadArgAccounts);
+  addClick("closeArgEditorBtn", closeArgEditor);
+  addClick("saveArgAccountBtn", saveArgAccount);
+  addClick("deleteArgAccountBtn", deleteArgAccountAdmin);
+  addClick("issueArgGameUrlBtn", issueArgGameUrl);
 
   // メール送信
   addClick("sendCampaignTestBtn", sendCampaignTest);
@@ -138,6 +148,7 @@ async function refreshAdmin() {
   await loadStampCodes();
   await loadTickets();
   await loadUsers();
+  await loadArgAccounts();
   await loadCampaignSubscribers();
 }
 
@@ -865,6 +876,7 @@ function renderUsersTable(users) {
             <th>メール</th>
             <th>メール認証</th>
             <th>メール希望</th>
+            <th>種別</th>
             <th>権限</th>
             <th>チケット</th>
             <th>使用済み</th>
@@ -880,6 +892,7 @@ function renderUsersTable(users) {
               <td>${escapeHtml(u.email)}</td>
               <td>${u.emailVerified ? "認証済み" : "未認証"}</td>
               <td>${u.campaignOptIn ? "希望する" : "希望しない"}</td>
+              <td>${u.accountType === "arg" ? "ARG" : "通常"}</td>
               <td>${escapeHtml(u.role)}</td>
               <td>${escapeHtml(u.ticketsCount)}</td>
               <td>${escapeHtml(u.usedTicketsCount)}</td>
@@ -892,6 +905,277 @@ function renderUsersTable(users) {
       </table>
     </div>
   `;
+}
+
+
+/***********************
+ * ARG account management
+ ***********************/
+
+async function loadArgAccounts() {
+  try {
+    argAccounts = await api("adminListArgAccounts", { token: getAdminToken() });
+    renderArgAccounts();
+
+    if (selectedArgUserId) {
+      const stillExists = argAccounts.some((u) => u.userId === selectedArgUserId);
+      if (stillExists) openArgEditor(selectedArgUserId);
+      else closeArgEditor();
+    }
+  } catch (err) {
+    showMessage(err.message, "error");
+  }
+}
+
+function renderArgAccounts() {
+  const root = $("argAccountsList");
+  if (!root) return;
+
+  if (!argAccounts.length) {
+    root.innerHTML = `<p class="muted">ARG用アカウントはまだありません。</p>`;
+    return;
+  }
+
+  root.innerHTML = `<div class="arg-account-list">${argAccounts.map((u) => `
+    <button type="button" class="arg-account-item ${u.userId === selectedArgUserId ? "active" : ""}" data-arg-user="${escapeAttr(u.userId)}">
+      <span><strong>${escapeHtml(u.name)}</strong><small>${escapeHtml(u.email)}</small></span>
+      <span class="arg-account-meta">URL ${u.links?.length || 0}件</span>
+    </button>
+  `).join("")}</div>`;
+
+  root.querySelectorAll("[data-arg-user]").forEach((btn) => {
+    btn.addEventListener("click", () => openArgEditor(btn.dataset.argUser));
+  });
+}
+
+async function createArgAccount() {
+  try {
+    const name = getValue("argCreateName").trim();
+    const email = getValue("argCreateEmail").trim();
+    const password = getValue("argCreatePassword");
+    const createdLocal = getValue("argCreateCreatedAt");
+    const createdAt = createdLocal ? new Date(createdLocal).toISOString() : "";
+
+    const res = await api("adminCreateArgAccount", {
+      token: getAdminToken(),
+      name,
+      email,
+      password,
+      createdAt,
+      emailVerified: !!$("argCreateVerified")?.checked,
+    });
+
+    setValue("argCreateName", "");
+    setValue("argCreateEmail", "");
+    setValue("argCreatePassword", "");
+    setValue("argCreateCreatedAt", "");
+    if ($("argCreateVerified")) $("argCreateVerified").checked = true;
+
+    selectedArgUserId = res.userId;
+    showMessage(res.message || "ARG用アカウントを作成しました。");
+    await loadArgAccounts();
+  } catch (err) {
+    showMessage(err.message, "error");
+  }
+}
+
+function openArgEditor(userId) {
+  const user = argAccounts.find((u) => u.userId === userId);
+  if (!user) return;
+
+  selectedArgUserId = userId;
+  setValue("argEditUserId", user.userId);
+  setValue("argEditName", user.name);
+  setValue("argEditEmail", user.email);
+  setValue("argEditPassword", "");
+  setValue("argEditCreatedAt", isoToLocalInput(user.createdAt));
+  if ($("argEditVerified")) $("argEditVerified").checked = !!user.emailVerified;
+  setText("argEditorTitle", `${user.name} / ARGアカウント編集`);
+  removeHidden("argAccountEditor");
+  renderArgGameLinks(user.links || []);
+  renderArgAccounts();
+}
+
+function closeArgEditor() {
+  selectedArgUserId = null;
+  addHidden("argAccountEditor");
+  renderArgAccounts();
+}
+
+async function saveArgAccount() {
+  if (!selectedArgUserId) return;
+  try {
+    const createdLocal = getValue("argEditCreatedAt");
+    const res = await api("adminUpdateArgAccount", {
+      token: getAdminToken(),
+      userId: selectedArgUserId,
+      name: getValue("argEditName").trim(),
+      email: getValue("argEditEmail").trim(),
+      newPassword: getValue("argEditPassword"),
+      createdAt: createdLocal ? new Date(createdLocal).toISOString() : "",
+      emailVerified: !!$("argEditVerified")?.checked,
+    });
+    setValue("argEditPassword", "");
+    showMessage(res.message || "保存しました。");
+    await loadArgAccounts();
+  } catch (err) {
+    showMessage(err.message, "error");
+  }
+}
+
+async function deleteArgAccountAdmin() {
+  if (!selectedArgUserId) return;
+  const user = argAccounts.find((u) => u.userId === selectedArgUserId);
+  if (!user) return;
+  if (!confirm(`${user.name} のARG用アカウントを削除しますか？\n\n発行したゲームURLとtokenも削除されます。`)) return;
+  if (!confirm("この操作は元に戻せません。削除を実行しますか？")) return;
+
+  try {
+    const res = await api("adminDeleteArgAccount", {
+      token: getAdminToken(),
+      userId: selectedArgUserId,
+    });
+    closeArgEditor();
+    showMessage(res.message || "削除しました。");
+    await refreshAdmin();
+  } catch (err) {
+    showMessage(err.message, "error");
+  }
+}
+
+async function issueArgGameUrl() {
+  if (!selectedArgUserId) return;
+  try {
+    const res = await api("adminIssueArgGameUrl", {
+      token: getAdminToken(),
+      userId: selectedArgUserId,
+      title: getValue("argGameTitle").trim(),
+      gameId: getValue("argGameId").trim(),
+      baseUrl: getValue("argGameBaseUrl").trim(),
+      validHours: Number(getValue("argGameValidHours", "24")),
+      status: getValue("argGameStatus", "unused"),
+    });
+    setValue("argGameTitle", "");
+    setValue("argGameId", "");
+    setValue("argGameBaseUrl", "");
+    setValue("argGameValidHours", "24");
+    setValue("argGameStatus", "unused");
+    showMessage(res.message || "ゲームURLを発行しました。");
+    await loadArgAccounts();
+  } catch (err) {
+    showMessage(err.message, "error");
+  }
+}
+
+function renderArgGameLinks(links) {
+  const root = $("argGameLinks");
+  if (!root) return;
+
+  if (!links.length) {
+    root.innerHTML = `<p class="muted">このアカウントにはゲームURLがありません。</p>`;
+    return;
+  }
+
+  root.innerHTML = `<div class="arg-game-link-list">${links.map((link) => `
+    <article class="arg-game-link-card" data-arg-ticket="${escapeAttr(link.ticketId)}">
+      <div class="arg-link-head">
+        <strong>${escapeHtml(link.title || "ゲームURL")}</strong>
+        <span class="code">${escapeHtml(link.gameToken || "")}</span>
+      </div>
+      <label>表示名<input data-field="title" value="${escapeAttr(link.title || "")}" /></label>
+      <label>gameId<input data-field="gameId" value="${escapeAttr(link.gameId || "")}" /></label>
+      <label>ゲーム先URL<input data-field="baseUrl" type="url" value="${escapeAttr(stripTokenFromUrl(link.gameUrl || ""))}" /></label>
+      <label>URL有効時間<input data-field="validHours" type="number" min="1" value="${escapeAttr(link.validHours || 24)}" /></label>
+      <label>状態
+        <select data-field="status">
+          ${["unused","active","cleared","expired","blocked"].map((s) => `<option value="${s}" ${link.gameStatus === s ? "selected" : ""}>${s}</option>`).join("")}
+        </select>
+      </label>
+      <p class="muted arg-current-url">現在のURL：<a href="${escapeAttr(link.gameUrl || "#")}" target="_blank" rel="noopener">${escapeHtml(link.gameUrl || "")}</a></p>
+      <div class="button-row">
+        <button type="button" class="small-btn" data-save-arg-link="${escapeAttr(link.ticketId)}">変更を保存</button>
+        <button type="button" class="small-btn ghost" data-copy-arg-link="${escapeAttr(link.gameUrl || "")}">URLをコピー</button>
+        <button type="button" class="small-btn danger-btn" data-delete-arg-link="${escapeAttr(link.ticketId)}">削除</button>
+      </div>
+    </article>
+  `).join("")}</div>`;
+
+  root.querySelectorAll("[data-save-arg-link]").forEach((btn) => {
+    btn.addEventListener("click", () => saveArgGameLink(btn.dataset.saveArgLink));
+  });
+  root.querySelectorAll("[data-delete-arg-link]").forEach((btn) => {
+    btn.addEventListener("click", () => deleteArgGameLink(btn.dataset.deleteArgLink));
+  });
+  root.querySelectorAll("[data-copy-arg-link]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copyArgLink || "");
+        showMessage("ゲームURLをコピーしました。");
+      } catch (e) {
+        showMessage("URLをコピーできませんでした。", "error");
+      }
+    });
+  });
+}
+
+async function saveArgGameLink(ticketId) {
+  if (!selectedArgUserId) return;
+  const card = document.querySelector(`[data-arg-ticket="${CSS.escape(ticketId)}"]`);
+  if (!card) return;
+  const field = (name) => card.querySelector(`[data-field="${name}"]`)?.value || "";
+
+  try {
+    const res = await api("adminUpdateArgGameUrl", {
+      token: getAdminToken(),
+      userId: selectedArgUserId,
+      ticketId,
+      title: field("title").trim(),
+      gameId: field("gameId").trim(),
+      baseUrl: field("baseUrl").trim(),
+      validHours: Number(field("validHours")),
+      status: field("status"),
+    });
+    showMessage(res.message || "ゲームURL設定を更新しました。");
+    await loadArgAccounts();
+  } catch (err) {
+    showMessage(err.message, "error");
+  }
+}
+
+async function deleteArgGameLink(ticketId) {
+  if (!selectedArgUserId) return;
+  if (!confirm("このゲームURLを削除しますか？tokenも認証シートから削除されます。")) return;
+
+  try {
+    const res = await api("adminDeleteArgGameUrl", {
+      token: getAdminToken(),
+      userId: selectedArgUserId,
+      ticketId,
+    });
+    showMessage(res.message || "削除しました。");
+    await loadArgAccounts();
+  } catch (err) {
+    showMessage(err.message, "error");
+  }
+}
+
+function stripTokenFromUrl(value) {
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    url.searchParams.delete("token");
+    return url.toString();
+  } catch (e) {
+    return value.replace(/([?&])token=[^&]*(&?)/, (m, first, tail) => tail ? first : "").replace(/[?&]$/, "");
+  }
+}
+
+function isoToLocalInput(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 /***********************
