@@ -1307,3 +1307,4 @@ function redirectAfterLoginIfNeeded() {
   location.href = returnTo;
   return true;
 }
+
