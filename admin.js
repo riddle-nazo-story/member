@@ -1498,45 +1498,118 @@ function writeAccessPrintWindow(printWindow, items) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ゲームアクセス用紙</title>
+<title>RIDDLE STORY | GAME ACCESS SHEET</title>
 <style>
+  :root{
+    --ink:#101926;
+    --accent:#2f6fed;
+    --accent-soft:#eaf1ff;
+    --paper:#ffffff;
+    --surface:#f4f6f8;
+    --line:#cfd7e3;
+    --muted:#5d6978;
+  }
   *{box-sizing:border-box}
-  html,body{margin:0;background:#ddd;font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;color:#080808}
-  .toolbar{position:sticky;top:0;z-index:3;display:flex;justify-content:center;gap:10px;padding:10px;background:#111}
-  .toolbar button{border:1px solid #fff;background:#fff;color:#111;padding:10px 18px;font:inherit;font-weight:800;cursor:pointer}
-  .paper{width:148mm;min-height:210mm;margin:12mm auto;background:#fff;padding:0 8mm 8mm;overflow:hidden;page-break-after:always}
-  .paper:last-child{page-break-after:auto}
-  .paper-head{margin:0 -8mm 7mm;padding:8mm 8mm 7mm;background:#090909;color:#fff;border-bottom:3px solid #222}
-  .brand{font-family:Georgia,serif;letter-spacing:.24em;font-size:11pt;text-align:center;margin:0 0 5mm}
-  .paper-head h1{font-size:25pt;line-height:1.05;margin:0;text-align:center;font-weight:950}
-  .paper-sub{margin:3mm 0 0;text-align:center;letter-spacing:.16em;font-size:9pt}
-  .play-row{display:grid;grid-template-columns:43mm 1fr;gap:6mm;align-items:center;margin-bottom:6mm}
-  .label-box{background:#0b0b0b;color:#fff;border:1.4px solid #000;padding:5mm 4mm;font-size:15pt;font-weight:900;text-align:center}
-  .instructions{font-size:10.5pt;line-height:1.75;white-space:pre-wrap}
-  .section-title{display:flex;align-items:center;gap:4mm;margin:5mm 0 3mm;font-size:16pt;font-weight:950}
-  .section-title:before,.section-title:after{content:"";height:1px;background:#333;flex:1}
-  .notes{margin:0;padding:0;list-style:none}
-  .notes li{padding:2.6mm 0;border-bottom:1px dotted #777;font-size:9.6pt;line-height:1.5}
-  .notes li:before{content:"●";margin-right:3mm}
-  .bottom{display:grid;grid-template-columns:1fr 64mm;gap:6mm;align-items:stretch;margin-top:6mm}
-  .check{background:#0d0d0d;color:#fff;padding:5mm;border:1px solid #000}
-  .check h2{font-size:14pt;margin:0 0 4mm;text-align:center}
-  .check-row{display:grid;grid-template-columns:8mm 1fr;gap:3mm;align-items:center;padding:3mm 0;border-bottom:1px dotted #777;font-size:9pt;line-height:1.4}
-  .box{width:7mm;height:7mm;border:1.3px solid #fff;background:#fff}
-  .qr-area{border:1.5px solid #111;padding:4mm;display:flex;flex-direction:column;justify-content:center;align-items:center;min-width:0}
-  .qr-area img{display:block;width:50mm;height:50mm;object-fit:contain;image-rendering:pixelated}
-  .url{width:100%;margin-top:3mm;background:#ececec;padding:2.5mm;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:6.9pt;overflow-wrap:anywhere;text-align:center}
-  .meta{margin-top:3mm;font-size:8pt;color:#444;text-align:center}
-  @page{size:A5 portrait;margin:0}
+  html,body{margin:0;padding:0;background:#dfe3e8;color:var(--ink);font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,system-ui,sans-serif}
+  .toolbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 14px;background:#101926;color:#fff;box-shadow:0 2px 12px #0003}
+  .toolbar-note{font-size:12px;opacity:.78;margin-right:8px}
+  .toolbar button{appearance:none;border:1px solid #fff;background:#fff;color:#101926;padding:9px 16px;border-radius:8px;font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+  .toolbar button.secondary{background:transparent;color:#fff}
+
+  /* A5の実寸。paddingを含めて148mm×210mmに固定する */
+  .paper{
+    position:relative;
+    width:148mm;
+    height:210mm;
+    margin:10mm auto;
+    padding:10mm 10mm 8mm;
+    overflow:hidden;
+    background:var(--paper);
+    box-shadow:0 8px 30px #0002;
+    page-break-after:always;
+    break-after:page;
+    isolation:isolate;
+  }
+  .paper:last-child{page-break-after:auto;break-after:auto}
+
+  .paper::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    z-index:-1;
+    background:
+      linear-gradient(135deg,transparent 0 12mm,var(--accent-soft) 12mm 12.5mm,transparent 12.5mm) top right/36mm 36mm no-repeat,
+      linear-gradient(315deg,transparent 0 12mm,var(--accent-soft) 12mm 12.5mm,transparent 12.5mm) bottom left/36mm 36mm no-repeat;
+  }
+  .paper::after{
+    content:"";
+    position:absolute;
+    left:0;top:0;width:4mm;height:100%;
+    background:var(--ink);
+  }
+
+  .topline{display:flex;align-items:center;justify-content:space-between;gap:6mm;margin-bottom:6mm;padding-left:1mm}
+  .brand{margin:0;font-family:Georgia,"Times New Roman",serif;font-size:10.5pt;font-weight:700;letter-spacing:.24em;white-space:nowrap}
+  .doc-tag{display:flex;align-items:center;gap:2mm;font-size:6.8pt;font-weight:800;letter-spacing:.12em;color:var(--accent)}
+  .doc-tag::before{content:"";width:8mm;height:1.2mm;background:var(--accent)}
+
+  .hero{display:grid;grid-template-columns:minmax(0,1fr) 46mm;gap:8mm;align-items:center;padding:0 1mm 7mm;border-bottom:.35mm solid var(--line)}
+  .hero-copy{min-width:0}
+  .kicker{margin:0 0 2.5mm;font-size:7.2pt;font-weight:900;letter-spacing:.18em;color:var(--accent)}
+  .title{margin:0;font-size:22pt;line-height:1.16;font-weight:900;letter-spacing:.01em;overflow-wrap:anywhere}
+  .meta-line{display:flex;flex-wrap:wrap;gap:2mm 4mm;margin-top:4mm;color:var(--muted);font-size:7.4pt}
+  .meta-chip{display:inline-flex;align-items:center;gap:1.5mm}
+  .meta-chip b{color:var(--ink)}
+
+  .qr-frame{position:relative;padding:3.5mm;background:var(--surface);border:.35mm solid var(--line)}
+  .qr-frame::before,.qr-frame::after{content:"";position:absolute;width:7mm;height:7mm;border-color:var(--accent);border-style:solid;pointer-events:none}
+  .qr-frame::before{left:-.35mm;top:-.35mm;border-width:.8mm 0 0 .8mm}
+  .qr-frame::after{right:-.35mm;bottom:-.35mm;border-width:0 .8mm .8mm 0}
+  .qr-frame img{display:block;width:38mm;height:38mm;margin:auto;object-fit:contain;image-rendering:pixelated;background:#fff}
+  .scan-label{margin:2.4mm 0 0;text-align:center;font-size:6.5pt;font-weight:900;letter-spacing:.13em;color:var(--accent)}
+
+  .flow{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm;margin:6mm 0}
+  .flow-step{position:relative;min-height:20mm;padding:3mm 3mm 3mm 10mm;border:.3mm solid var(--line);background:#fff}
+  .flow-no{position:absolute;left:3mm;top:3mm;font:700 11pt/1 Georgia,serif;color:var(--accent)}
+  .flow-step strong{display:block;font-size:8.2pt;margin-bottom:1.5mm}
+  .flow-step span{display:block;color:var(--muted);font-size:6.8pt;line-height:1.45}
+
+  .guide{display:grid;grid-template-columns:1.12fr .88fr;gap:5mm;margin-top:5mm}
+  .panel{min-width:0;border-top:1mm solid var(--ink);padding-top:3mm}
+  .panel h2{display:flex;align-items:center;gap:2mm;margin:0 0 2.5mm;font-size:9pt;letter-spacing:.08em}
+  .panel h2::before{content:"";width:3mm;height:3mm;background:var(--accent);transform:rotate(45deg)}
+  .instructions{margin:0;white-space:pre-wrap;font-size:7.7pt;line-height:1.65;color:#273343}
+  .notes{margin:0;padding:0;list-style:none;display:grid;gap:1.5mm}
+  .notes li{position:relative;padding-left:4mm;font-size:7.1pt;line-height:1.45;color:#273343}
+  .notes li::before{content:"";position:absolute;left:.5mm;top:.56em;width:1.5mm;height:1.5mm;background:var(--accent);border-radius:50%}
+
+  .access-box{margin-top:5mm;padding:4mm 5mm;background:var(--ink);color:#fff;display:grid;grid-template-columns:1fr auto;gap:4mm;align-items:center}
+  .access-box .label{margin:0 0 1.3mm;font-size:6.4pt;font-weight:800;letter-spacing:.14em;color:#b9c9e9}
+  .url{margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:6.5pt;line-height:1.35;overflow-wrap:anywhere;word-break:break-all}
+  .limit{white-space:nowrap;border-left:.3mm solid #ffffff55;padding-left:4mm;text-align:right}
+  .limit b{display:block;font-size:8pt}
+  .limit span{display:block;margin-top:1mm;font-size:6.3pt;color:#b9c9e9}
+
+  .footer{position:absolute;left:10mm;right:10mm;bottom:6.5mm;display:flex;align-items:flex-end;justify-content:space-between;gap:5mm;padding-left:1mm;color:var(--muted);font-size:5.8pt;letter-spacing:.04em}
+  .footer strong{color:var(--ink);font-weight:900}
+  .footer-mark{font-family:Georgia,"Times New Roman",serif;letter-spacing:.18em;font-size:6.2pt;color:var(--ink)}
+
+  @page{size:148mm 210mm;margin:0}
   @media print{
-    html,body{background:#fff}
+    html,body{width:148mm;margin:0!important;padding:0!important;background:#fff!important}
+    body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .toolbar{display:none!important}
-    .paper{width:148mm;min-height:210mm;margin:0;padding-bottom:8mm}
+    .paper{width:148mm!important;height:210mm!important;margin:0!important;box-shadow:none!important}
   }
 </style>
 </head>
 <body>
-<div class="toolbar"><button onclick="window.print()">印刷する</button><button onclick="window.close()">閉じる</button></div>
+<div class="toolbar">
+  <span class="toolbar-note">A5縦・148 × 210 mm</span>
+  <button onclick="window.print()">印刷する</button>
+  <button class="secondary" onclick="window.close()">閉じる</button>
+</div>
 ${pages}
 </body>
 </html>`);
@@ -1550,44 +1623,72 @@ function buildAccessPaperPage(paper, qrDataUrl) {
     .filter(Boolean);
 
   const instructions = paper.instructions ||
-    "QRコードを読み取るか、記載されたURLをブラウザに入力し、ゲーム専用ページへアクセスしてください。";
+    "QRコードを読み取り、表示されたゲームページへアクセスしてください。アクセス後は画面の案内に従ってゲームを開始してください。";
 
-  const limit = Number(paper.validHours) === 0
-    ? "有効期限：なし"
-    : `有効期限：初回アクセスから${Number(paper.validHours)}時間`;
+  const hours = Number(paper.validHours);
+  const limitMain = hours === 0 ? "期限なし" : `${hours}時間`;
+  const limitSub = hours === 0 ? "運営が無効化するまで有効" : "初回アクセスから";
+  const gameId = String(paper.gameId || "-");
+  const token = String(paper.gameToken || "");
+  const accessRef = token ? token.slice(-8).toUpperCase() : String(paper.paperId || "-").slice(-8).toUpperCase();
+  const displayNotes = notes.length ? notes : ["この用紙はゲーム終了まで大切に保管してください。"];
 
   return `
 <section class="paper">
-  <header class="paper-head">
+  <div class="topline">
     <p class="brand">RIDDLE STORY</p>
-    <h1>${escapeHtml(paper.title || "ゲームアクセス")}</h1>
-    <p class="paper-sub">ゲームアクセス用紙</p>
-  </header>
-
-  <div class="play-row">
-    <div class="label-box">ゲームプレイ方法</div>
-    <div class="instructions">${escapeHtml(instructions)}</div>
+    <div class="doc-tag">GAME ACCESS SHEET</div>
   </div>
 
-  <div class="section-title">注意事項</div>
-  <ul class="notes">
-    ${(notes.length ? notes : ["この用紙はゲーム終了まで大切に保管してください。"]).map((line) => `<li>${escapeHtml(line)}</li>`).join("")}
-  </ul>
-
-  <div class="bottom">
-    <section class="check">
-      <h2>ゲームプレイ前の確認</h2>
-      <div class="check-row"><span class="box"></span><span>動作環境に合った端末・ブラウザを用意した</span></div>
-      <div class="check-row"><span class="box"></span><span>注意事項を読んだ</span></div>
-      <div class="check-row"><span class="box"></span><span>遊び方説明を読んだ</span></div>
-    </section>
-
-    <section class="qr-area">
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="kicker">YOUR ENTRY POINT</p>
+      <h1 class="title">${escapeHtml(paper.title || "ゲームアクセス")}</h1>
+      <div class="meta-line">
+        <span class="meta-chip">GAME <b>${escapeHtml(gameId)}</b></span>
+        <span class="meta-chip">ACCESS REF <b>${escapeHtml(accessRef)}</b></span>
+      </div>
+    </div>
+    <div class="qr-frame">
       <img src="${escapeAttr(qrDataUrl)}" alt="ゲームアクセスQRコード">
-      <div class="url">${escapeHtml(paper.gameUrl || "")}</div>
-      <div class="meta">${escapeHtml(limit)}</div>
-    </section>
-  </div>
+      <p class="scan-label">SCAN TO START</p>
+    </div>
+  </section>
+
+  <section class="flow" aria-label="ゲーム開始までの流れ">
+    <div class="flow-step"><span class="flow-no">01</span><strong>QRを読み取る</strong><span>スマートフォンやタブレットのカメラで読み取ります。</span></div>
+    <div class="flow-step"><span class="flow-no">02</span><strong>ページを開く</strong><span>表示されたゲーム専用ページへアクセスします。</span></div>
+    <div class="flow-step"><span class="flow-no">03</span><strong>ゲーム開始</strong><span>画面に表示される案内に従ってプレイしてください。</span></div>
+  </section>
+
+  <section class="guide">
+    <div class="panel">
+      <h2>PLAY GUIDE</h2>
+      <p class="instructions">${escapeHtml(instructions)}</p>
+    </div>
+    <div class="panel">
+      <h2>BEFORE YOU START</h2>
+      <ul class="notes">
+        ${displayNotes.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}
+      </ul>
+    </div>
+  </section>
+
+  <section class="access-box">
+    <div>
+      <p class="label">DIRECT ACCESS URL</p>
+      <p class="url">${escapeHtml(paper.gameUrl || "")}</p>
+    </div>
+    <div class="limit">
+      <b>${escapeHtml(limitMain)}</b>
+      <span>${escapeHtml(limitSub)}</span>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <span>この用紙に記載されたURL・QRコードは、発行されたゲームアクセス専用です。</span>
+    <span class="footer-mark">RIDDLE STORY</span>
+  </footer>
 </section>`;
 }
 
