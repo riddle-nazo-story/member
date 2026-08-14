@@ -984,3 +984,127 @@ button {
     flex-direction: column;
   }
 }
+
+
+/* =========================
+   GAME ACCESS PAPER
+========================= */
+
+.access-history-card {
+  margin-top: 18px;
+}
+
+.access-issued-list,
+.access-history-list {
+  display: grid;
+  gap: 14px;
+}
+
+.access-issued-card,
+.access-history-item {
+  border: 1px solid var(--accent);
+  background: #fff;
+  padding: 16px;
+}
+
+.access-issued-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+}
+
+.access-issued-card .button-row {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.access-qr-preview {
+  width: 190px;
+  min-height: 190px;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 9px;
+}
+
+.access-qr-preview canvas,
+.access-qr-preview img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.access-url-text,
+.access-current-url {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.access-history-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.access-history-head strong,
+.access-history-head small {
+  display: block;
+}
+
+.access-history-head small {
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.access-status {
+  border: 1px solid #050505;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.access-edit-grid {
+  align-items: start;
+}
+
+.access-edit-grid textarea {
+  min-height: 130px;
+}
+
+#accessPaperInstructions {
+  min-height: 110px;
+}
+
+#accessPaperNotes {
+  min-height: 150px;
+}
+
+@media (max-width: 700px) {
+  .access-issued-card {
+    grid-template-columns: 1fr;
+  }
+
+  .access-qr-preview {
+    width: min(220px, 100%);
+    min-height: 0;
+    justify-self: center;
+  }
+
+  .access-issued-card .button-row {
+    grid-column: auto;
+  }
+
+  .access-history-head {
+    display: grid;
+  }
+
+  .access-status {
+    width: fit-content;
+  }
+}
