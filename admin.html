@@ -9,7 +9,7 @@
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="apple-touch-icon" href="favicon.png" />
 
-  <link rel="stylesheet" href="admin.css?v=escape-id-20260806-1" />
+  <link rel="stylesheet" href="admin.css?v=game-access-20260815-1" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 </head>
 <body>
@@ -41,6 +41,7 @@
         <button class="admin-tab active" data-tab="events">公演管理</button>
         <button class="admin-tab" data-tab="stamps">スタンプ</button>
         <button class="admin-tab" data-tab="tickets">チケット使用</button>
+        <button class="admin-tab" data-tab="access">アクセス用紙</button>
         <button class="admin-tab" data-tab="users">会員一覧</button>
         <button class="admin-tab" data-tab="arg">ARGアカウント</button>
         <button class="admin-tab" data-tab="mail">メール送信</button>
@@ -155,7 +156,8 @@
 
               <label>
                 URL有効時間
-                <input id="eventTicketValidHours" type="number" min="1" value="24" />
+                <input id="eventTicketValidHours" type="number" min="0" value="0" />
+                <small>0 = 無期限。1以上を入れると、初回アクセスから指定時間だけ有効です。</small>
               </label>
 
               <label>
@@ -288,6 +290,86 @@
         </div>
       </section>
 
+
+      <section id="admin-tab-access" class="admin-panel hidden">
+        <div class="grid two">
+          <section class="card">
+            <p class="eyebrow">GAME ACCESS PAPER</p>
+            <h2>ゲームアクセス用紙を発行</h2>
+            <p class="muted">
+              会員アカウントとは関係なく、ゲーム認証token付きURLを発行します。
+              QRコードを自動生成し、そのままA5用紙として印刷できます。
+            </p>
+
+            <label>
+              用紙タイトル
+              <input id="accessPaperTitle" type="text" placeholder="例：とあるホテルの秘密" />
+            </label>
+
+            <label>
+              gameId
+              <input id="accessPaperGameId" type="text" placeholder="hotel-secret" />
+            </label>
+
+            <label>
+              ゲーム先URL
+              <input id="accessPaperBaseUrl" type="url" placeholder="https://riddlestory.jp/game/" />
+              <small>ここにtokenが自動で追加されます。</small>
+            </label>
+
+            <label>
+              URL有効時間
+              <input id="accessPaperValidHours" type="number" min="0" value="0" />
+              <small>0 = 無期限。1以上は、初回アクセスからの有効時間です。</small>
+            </label>
+
+            <label>
+              発行枚数
+              <input id="accessPaperCount" type="number" min="1" max="50" value="1" />
+            </label>
+
+            <label>
+              ゲームプレイ方法
+              <textarea id="accessPaperInstructions">QRコードを読み取るか、記載されたURLをブラウザに入力し、ゲーム専用ページへアクセスしてください。</textarea>
+            </label>
+
+            <label>
+              注意事項（1行につき1項目）
+              <textarea id="accessPaperNotes">この用紙はゲーム終了まで大切に保管してください。
+URL・QRコードを第三者へ共有しないでください。
+ゲーム中はブラウザのCookie・サイトデータを削除しないでください。</textarea>
+            </label>
+
+            <button id="issueAccessPapersBtn" type="button">URL・QRコードを発行</button>
+          </section>
+
+          <section class="card">
+            <div class="arg-section-head">
+              <div>
+                <p class="eyebrow">JUST ISSUED</p>
+                <h2>今回発行した用紙</h2>
+              </div>
+              <button id="printAllAccessPapersBtn" type="button" class="ghost small-btn hidden">まとめて印刷</button>
+            </div>
+            <div id="accessPaperIssued"></div>
+          </section>
+        </div>
+
+        <section class="card access-history-card">
+          <div class="arg-section-head">
+            <div>
+              <p class="eyebrow">PAPER HISTORY</p>
+              <h2>発行済みアクセス用紙</h2>
+            </div>
+            <button id="refreshAccessPapersBtn" type="button" class="ghost small-btn">更新</button>
+          </div>
+          <p class="muted">
+            URLの行き先・有効時間・状態は後から変更できます。印刷済みのQRコードは、同じtokenを維持したまま行き先を変更できます。
+          </p>
+          <div id="accessPaperHistory"></div>
+        </section>
+      </section>
+
       <section id="admin-tab-users" class="admin-panel hidden">
         <section class="card">
           <h2>会員一覧</h2>
@@ -346,7 +428,7 @@
               <label>MEMBER上の表示名<input id="argGameTitle" type="text" placeholder="例：記録 No.03" /></label>
               <label>gameId<input id="argGameId" type="text" placeholder="select-answer" /></label>
               <label>ゲーム先URL<input id="argGameBaseUrl" type="url" placeholder="https://example.com/game/" /></label>
-              <label>URL有効時間<input id="argGameValidHours" type="number" min="1" value="24" /></label>
+              <label>URL有効時間<input id="argGameValidHours" type="number" min="0" value="0" /><small>0 = 無期限。1以上は初回アクセスからの有効時間です。</small></label>
               <label>初期状態<select id="argGameStatus"><option value="unused">unused（未使用）</option><option value="blocked">blocked（無効）</option></select></label>
               <button id="issueArgGameUrlBtn" type="button">このアカウントにURLを発行</button>
             </div>
@@ -409,6 +491,6 @@
     <div id="adminMessage" class="message hidden"></div>
   </main>
 
-  <script src="admin.js?v=escape-id-20260806-1"></script>
+  <script src="admin.js?v=game-access-20260815-1"></script>
 </body>
 </html>
