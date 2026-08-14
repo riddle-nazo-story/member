@@ -61,6 +61,8 @@ let eventOrderDirty = false;
 let draggedEventId = null;
 let argAccounts = [];
 let selectedArgUserId = null;
+let gameAccessPapers = [];
+let lastIssuedAccessPapers = [];
 
 document.addEventListener("DOMContentLoaded", initAdmin);
 
@@ -81,6 +83,11 @@ async function initAdmin() {
   addClick("saveArgAccountBtn", saveArgAccount);
   addClick("deleteArgAccountBtn", deleteArgAccountAdmin);
   addClick("issueArgGameUrlBtn", issueArgGameUrl);
+
+  // ゲームアクセス用紙
+  addClick("issueAccessPapersBtn", issueAccessPapers);
+  addClick("refreshAccessPapersBtn", loadAccessPapers);
+  addClick("printAllAccessPapersBtn", printAllAccessPapers);
 
   // メール送信
   addClick("sendCampaignTestBtn", sendCampaignTest);
@@ -149,6 +156,7 @@ async function refreshAdmin() {
   await loadTickets();
   await loadUsers();
   await loadArgAccounts();
+  await loadAccessPapers();
   await loadCampaignSubscribers();
 }
 
@@ -167,6 +175,7 @@ async function loadDashboard() {
     <div class="stat"><span>有料</span><strong>${escapeHtml(data.paidAccess)}</strong></div>
     <div class="stat"><span>スタンプ</span><strong>${escapeHtml(data.stampCodes)}</strong></div>
     <div class="stat"><span>取得</span><strong>${escapeHtml(data.stampLogs)}</strong></div>
+    <div class="stat"><span>アクセス用紙</span><strong>${escapeHtml(data.accessPapers || 0)}</strong></div>
   `);
 }
 
@@ -477,7 +486,7 @@ function renderEventsTable(events) {
               <td><span class="code">${escapeHtml(e.escapeLocationId || "")}</span></td>
               <td>${escapeHtml(e.gameId || "")}</td>
               <td>${e.gameBaseUrl ? `<a href="${escapeAttr(e.gameBaseUrl)}" target="_blank" rel="noopener">開く</a>` : ""}</td>
-              <td>${escapeHtml(e.ticketValidHours || "24")}時間</td>
+              <td>${escapeHtml(validHoursText(e.ticketValidHours, 24))}</td>
               <td>${e.shopUrl ? `<a href="${escapeAttr(e.shopUrl)}" target="_blank" rel="noopener">開く</a>` : ""}</td>
               <td><span class="code">${escapeHtml(e.paidCode || "")}</span></td>
               <td>${e.playUrl ? `<a href="${escapeAttr(e.playUrl)}" target="_blank" rel="noopener">開く</a>` : ""}</td>
@@ -536,7 +545,7 @@ function startEventEdit(eventId) {
   setValue("eventMainVisualUrl", event.mainVisualUrl || "");
   setValue("eventStory", event.story || "");
   setValue("eventNotes", event.notes || "");
-  setValue("eventTicketValidHours", event.ticketValidHours || "24");
+  setValue("eventTicketValidHours", validHoursInputValue(event.ticketValidHours, 24));
   setValue("eventMaxFreeTickets", event.maxFreeTickets || "1");
   setValue("eventDescription", event.description || "");
   syncTicketProviderFields();
@@ -617,7 +626,7 @@ function clearEventForm() {
   setValue("eventMainVisualUrl", "");
   setValue("eventStory", "");
   setValue("eventNotes", "");
-  setValue("eventTicketValidHours", "24");
+  setValue("eventTicketValidHours", "0");
   setValue("eventMaxFreeTickets", "1");
   setValue("eventDescription", "");
   syncTicketProviderFields();
@@ -1052,13 +1061,13 @@ async function issueArgGameUrl() {
       title: getValue("argGameTitle").trim(),
       gameId: getValue("argGameId").trim(),
       baseUrl: getValue("argGameBaseUrl").trim(),
-      validHours: Number(getValue("argGameValidHours", "24")),
+      validHours: Number(getValue("argGameValidHours", "0")),
       status: getValue("argGameStatus", "unused"),
     });
     setValue("argGameTitle", "");
     setValue("argGameId", "");
     setValue("argGameBaseUrl", "");
-    setValue("argGameValidHours", "24");
+    setValue("argGameValidHours", "0");
     setValue("argGameStatus", "unused");
     showMessage(res.message || "ゲームURLを発行しました。");
     await loadArgAccounts();
@@ -1085,7 +1094,7 @@ function renderArgGameLinks(links) {
       <label>表示名<input data-field="title" value="${escapeAttr(link.title || "")}" /></label>
       <label>gameId<input data-field="gameId" value="${escapeAttr(link.gameId || "")}" /></label>
       <label>ゲーム先URL<input data-field="baseUrl" type="url" value="${escapeAttr(stripTokenFromUrl(link.gameUrl || ""))}" /></label>
-      <label>URL有効時間<input data-field="validHours" type="number" min="1" value="${escapeAttr(link.validHours || 24)}" /></label>
+      <label>URL有効時間<input data-field="validHours" type="number" min="1" value="${escapeAttr(validHoursInputValue(link.validHours, 24))}" /></label>
       <label>状態
         <select data-field="status">
           ${["unused","active","cleared","expired","blocked"].map((s) => `<option value="${s}" ${link.gameStatus === s ? "selected" : ""}>${s}</option>`).join("")}
@@ -1176,6 +1185,431 @@ function isoToLocalInput(value) {
   if (Number.isNaN(d.getTime())) return "";
   const pad = (n) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+
+/***********************
+ * Game access paper
+ ***********************/
+
+async function loadAccessPapers() {
+  try {
+    gameAccessPapers = await api("adminListGameAccessPapers", {
+      token: getAdminToken(),
+    });
+    renderAccessPaperHistory();
+  } catch (err) {
+    const root = $("accessPaperHistory");
+    if (root) root.innerHTML = `<p class="muted">取得できませんでした。</p>`;
+  }
+}
+
+async function issueAccessPapers() {
+  try {
+    const payload = {
+      token: getAdminToken(),
+      title: getValue("accessPaperTitle").trim(),
+      gameId: getValue("accessPaperGameId").trim(),
+      baseUrl: getValue("accessPaperBaseUrl").trim(),
+      validHours: Number(getValue("accessPaperValidHours", "0")),
+      count: Number(getValue("accessPaperCount", "1")),
+      instructions: getValue("accessPaperInstructions").trim(),
+      notes: getValue("accessPaperNotes").trim(),
+    };
+
+    const button = $("issueAccessPapersBtn");
+    if (button) {
+      button.disabled = true;
+      button.textContent = "発行しています…";
+    }
+
+    const res = await api("adminCreateGameAccessPapers", payload);
+    lastIssuedAccessPapers = res.papers || [];
+    renderIssuedAccessPapers();
+    showMessage(res.message || "ゲームアクセス用紙を発行しました。");
+    await loadAccessPapers();
+  } catch (err) {
+    showMessage(err.message, "error");
+  } finally {
+    const button = $("issueAccessPapersBtn");
+    if (button) {
+      button.disabled = false;
+      button.textContent = "URL・QRコードを発行";
+    }
+  }
+}
+
+function renderIssuedAccessPapers() {
+  const root = $("accessPaperIssued");
+  const printAllBtn = $("printAllAccessPapersBtn");
+  if (!root) return;
+
+  if (!lastIssuedAccessPapers.length) {
+    root.innerHTML = `<p class="muted">まだ発行していません。</p>`;
+    printAllBtn?.classList.add("hidden");
+    return;
+  }
+
+  printAllBtn?.classList.toggle("hidden", lastIssuedAccessPapers.length < 2);
+
+  root.innerHTML = `<div class="access-issued-list">${lastIssuedAccessPapers.map((paper, index) => `
+    <article class="access-issued-card">
+      <div>
+        <strong>${escapeHtml(paper.title)}</strong>
+        <p class="muted">${escapeHtml(validHoursText(paper.validHours, 0))}</p>
+        <p class="code access-url-text">${escapeHtml(paper.gameUrl)}</p>
+      </div>
+      <div class="access-qr-preview" id="accessIssuedQr${index}"></div>
+      <div class="button-row">
+        <button type="button" class="small-btn" data-print-issued="${index}">印刷画面を開く</button>
+        <button type="button" class="small-btn ghost" data-copy-issued="${index}">URLをコピー</button>
+      </div>
+    </article>
+  `).join("")}</div>`;
+
+  lastIssuedAccessPapers.forEach((paper, index) => {
+    renderQrInto(`accessIssuedQr${index}`, paper.gameUrl, 170);
+  });
+
+  root.querySelectorAll("[data-print-issued]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const paper = lastIssuedAccessPapers[Number(btn.dataset.printIssued)];
+      if (paper) printAccessPaper(paper);
+    });
+  });
+
+  root.querySelectorAll("[data-copy-issued]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const paper = lastIssuedAccessPapers[Number(btn.dataset.copyIssued)];
+      if (paper) await copyAccessText(paper.gameUrl);
+    });
+  });
+}
+
+function renderAccessPaperHistory() {
+  const root = $("accessPaperHistory");
+  if (!root) return;
+
+  if (!gameAccessPapers.length) {
+    root.innerHTML = `<p class="muted">発行済みのアクセス用紙はありません。</p>`;
+    return;
+  }
+
+  root.innerHTML = `<div class="access-history-list">${gameAccessPapers.map((paper) => `
+    <article class="access-history-item" data-access-paper="${escapeAttr(paper.paperId)}">
+      <div class="access-history-head">
+        <div>
+          <strong>${escapeHtml(paper.title || "ゲームアクセス用紙")}</strong>
+          <small>${escapeHtml(formatDate(paper.createdAt))}</small>
+        </div>
+        <span class="access-status">${escapeHtml(gameStatusText(paper.status))}</span>
+      </div>
+
+      <div class="grid two access-edit-grid">
+        <div>
+          <label>用紙タイトル<input data-field="title" value="${escapeAttr(paper.title || "")}" /></label>
+          <label>gameId<input data-field="gameId" value="${escapeAttr(paper.gameId || "")}" /></label>
+          <label>ゲーム先URL<input data-field="baseUrl" type="url" value="${escapeAttr(paper.baseUrl || stripTokenFromUrl(paper.gameUrl || ""))}" /></label>
+          <label>URL有効時間<input data-field="validHours" type="number" min="0" value="${escapeAttr(validHoursInputValue(paper.validHours, 24))}" /><small>0 = 無期限</small></label>
+          <label>状態
+            <select data-field="status">
+              ${["unused","active","cleared","expired","blocked"].map((s) => `<option value="${s}" ${paper.status === s ? "selected" : ""}>${escapeHtml(gameStatusText(s))}</option>`).join("")}
+            </select>
+          </label>
+        </div>
+
+        <div>
+          <label>ゲームプレイ方法<textarea data-field="instructions">${escapeHtml(paper.instructions || "")}</textarea></label>
+          <label>注意事項<textarea data-field="notes">${escapeHtml(paper.notes || "")}</textarea></label>
+          <p class="muted">token：<span class="code">${escapeHtml(paper.gameToken || "")}</span></p>
+          <p class="muted access-current-url">現在のURL：<a href="${escapeAttr(paper.gameUrl || "#")}" target="_blank" rel="noopener">${escapeHtml(paper.gameUrl || "")}</a></p>
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button type="button" class="small-btn" data-save-access="${escapeAttr(paper.paperId)}">変更を保存</button>
+        <button type="button" class="small-btn ghost" data-print-access="${escapeAttr(paper.paperId)}">印刷</button>
+        <button type="button" class="small-btn ghost" data-copy-access="${escapeAttr(paper.paperId)}">URLをコピー</button>
+        <button type="button" class="small-btn danger-btn" data-delete-access="${escapeAttr(paper.paperId)}">削除</button>
+      </div>
+    </article>
+  `).join("")}</div>`;
+
+  root.querySelectorAll("[data-save-access]").forEach((btn) => {
+    btn.addEventListener("click", () => saveAccessPaper(btn.dataset.saveAccess));
+  });
+  root.querySelectorAll("[data-print-access]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const paper = gameAccessPapers.find((p) => p.paperId === btn.dataset.printAccess);
+      if (paper) printAccessPaper(paper);
+    });
+  });
+  root.querySelectorAll("[data-copy-access]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const paper = gameAccessPapers.find((p) => p.paperId === btn.dataset.copyAccess);
+      if (paper) await copyAccessText(paper.gameUrl);
+    });
+  });
+  root.querySelectorAll("[data-delete-access]").forEach((btn) => {
+    btn.addEventListener("click", () => deleteAccessPaper(btn.dataset.deleteAccess));
+  });
+}
+
+async function saveAccessPaper(paperId) {
+  const card = document.querySelector(`[data-access-paper="${CSS.escape(paperId)}"]`);
+  if (!card) return;
+  const field = (name) => card.querySelector(`[data-field="${name}"]`)?.value || "";
+
+  try {
+    const res = await api("adminUpdateGameAccessPaper", {
+      token: getAdminToken(),
+      paperId,
+      title: field("title").trim(),
+      gameId: field("gameId").trim(),
+      baseUrl: field("baseUrl").trim(),
+      validHours: Number(field("validHours")),
+      status: field("status"),
+      instructions: field("instructions").trim(),
+      notes: field("notes").trim(),
+    });
+    showMessage(res.message || "アクセス用紙を更新しました。");
+    await loadAccessPapers();
+  } catch (err) {
+    showMessage(err.message, "error");
+  }
+}
+
+async function deleteAccessPaper(paperId) {
+  if (!confirm("このアクセス用紙を削除しますか？\\n対応するゲームtokenも削除され、URLは使えなくなります。")) return;
+
+  try {
+    const res = await api("adminDeleteGameAccessPaper", {
+      token: getAdminToken(),
+      paperId,
+    });
+    showMessage(res.message || "削除しました。");
+    lastIssuedAccessPapers = lastIssuedAccessPapers.filter((p) => p.paperId !== paperId);
+    renderIssuedAccessPapers();
+    await loadAccessPapers();
+    await loadDashboard();
+    await loadTickets();
+  } catch (err) {
+    showMessage(err.message, "error");
+  }
+}
+
+function renderQrInto(id, text, size = 170) {
+  const root = $(id);
+  if (!root) return;
+  root.innerHTML = "";
+
+  if (!window.QRCode) {
+    root.innerHTML = `<p class="muted">QR生成ライブラリを読み込めませんでした。</p>`;
+    return;
+  }
+
+  new QRCode(root, {
+    text,
+    width: size,
+    height: size,
+  });
+}
+
+async function buildQrDataUrl(text, size = 520) {
+  if (!window.QRCode) throw new Error("QR生成ライブラリを読み込めませんでした。");
+
+  const holder = document.createElement("div");
+  holder.style.position = "fixed";
+  holder.style.left = "-10000px";
+  holder.style.top = "-10000px";
+  document.body.appendChild(holder);
+
+  try {
+    new QRCode(holder, {
+      text,
+      width: size,
+      height: size,
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 80));
+
+    const canvas = holder.querySelector("canvas");
+    if (canvas) return canvas.toDataURL("image/png");
+
+    const img = holder.querySelector("img");
+    if (img?.src) return img.src;
+
+    throw new Error("QRコード画像を生成できませんでした。");
+  } finally {
+    holder.remove();
+  }
+}
+
+async function printAccessPaper(paper) {
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    showMessage("印刷画面を開けませんでした。ポップアップを許可してください。", "error");
+    return;
+  }
+
+  printWindow.document.write("<p style='font-family:sans-serif;padding:24px'>QRコードを準備しています…</p>");
+
+  try {
+    const qr = await buildQrDataUrl(paper.gameUrl);
+    writeAccessPrintWindow(printWindow, [{ paper, qr }]);
+  } catch (err) {
+    printWindow.close();
+    showMessage(err.message, "error");
+  }
+}
+
+async function printAllAccessPapers() {
+  if (!lastIssuedAccessPapers.length) return;
+
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    showMessage("印刷画面を開けませんでした。ポップアップを許可してください。", "error");
+    return;
+  }
+
+  printWindow.document.write("<p style='font-family:sans-serif;padding:24px'>QRコードを準備しています…</p>");
+
+  try {
+    const items = [];
+    for (const paper of lastIssuedAccessPapers) {
+      items.push({
+        paper,
+        qr: await buildQrDataUrl(paper.gameUrl),
+      });
+    }
+    writeAccessPrintWindow(printWindow, items);
+  } catch (err) {
+    printWindow.close();
+    showMessage(err.message, "error");
+  }
+}
+
+function writeAccessPrintWindow(printWindow, items) {
+  const pages = items.map(({ paper, qr }) => buildAccessPaperPage(paper, qr)).join("");
+
+  printWindow.document.open();
+  printWindow.document.write(`<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ゲームアクセス用紙</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#ddd;font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;color:#080808}
+  .toolbar{position:sticky;top:0;z-index:3;display:flex;justify-content:center;gap:10px;padding:10px;background:#111}
+  .toolbar button{border:1px solid #fff;background:#fff;color:#111;padding:10px 18px;font:inherit;font-weight:800;cursor:pointer}
+  .paper{width:148mm;min-height:210mm;margin:12mm auto;background:#fff;padding:0 8mm 8mm;overflow:hidden;page-break-after:always}
+  .paper:last-child{page-break-after:auto}
+  .paper-head{margin:0 -8mm 7mm;padding:8mm 8mm 7mm;background:#090909;color:#fff;border-bottom:3px solid #222}
+  .brand{font-family:Georgia,serif;letter-spacing:.24em;font-size:11pt;text-align:center;margin:0 0 5mm}
+  .paper-head h1{font-size:25pt;line-height:1.05;margin:0;text-align:center;font-weight:950}
+  .paper-sub{margin:3mm 0 0;text-align:center;letter-spacing:.16em;font-size:9pt}
+  .play-row{display:grid;grid-template-columns:43mm 1fr;gap:6mm;align-items:center;margin-bottom:6mm}
+  .label-box{background:#0b0b0b;color:#fff;border:1.4px solid #000;padding:5mm 4mm;font-size:15pt;font-weight:900;text-align:center}
+  .instructions{font-size:10.5pt;line-height:1.75;white-space:pre-wrap}
+  .section-title{display:flex;align-items:center;gap:4mm;margin:5mm 0 3mm;font-size:16pt;font-weight:950}
+  .section-title:before,.section-title:after{content:"";height:1px;background:#333;flex:1}
+  .notes{margin:0;padding:0;list-style:none}
+  .notes li{padding:2.6mm 0;border-bottom:1px dotted #777;font-size:9.6pt;line-height:1.5}
+  .notes li:before{content:"●";margin-right:3mm}
+  .bottom{display:grid;grid-template-columns:1fr 64mm;gap:6mm;align-items:stretch;margin-top:6mm}
+  .check{background:#0d0d0d;color:#fff;padding:5mm;border:1px solid #000}
+  .check h2{font-size:14pt;margin:0 0 4mm;text-align:center}
+  .check-row{display:grid;grid-template-columns:8mm 1fr;gap:3mm;align-items:center;padding:3mm 0;border-bottom:1px dotted #777;font-size:9pt;line-height:1.4}
+  .box{width:7mm;height:7mm;border:1.3px solid #fff;background:#fff}
+  .qr-area{border:1.5px solid #111;padding:4mm;display:flex;flex-direction:column;justify-content:center;align-items:center;min-width:0}
+  .qr-area img{display:block;width:50mm;height:50mm;object-fit:contain;image-rendering:pixelated}
+  .url{width:100%;margin-top:3mm;background:#ececec;padding:2.5mm;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:6.9pt;overflow-wrap:anywhere;text-align:center}
+  .meta{margin-top:3mm;font-size:8pt;color:#444;text-align:center}
+  @page{size:A5 portrait;margin:0}
+  @media print{
+    html,body{background:#fff}
+    .toolbar{display:none!important}
+    .paper{width:148mm;min-height:210mm;margin:0;padding-bottom:8mm}
+  }
+</style>
+</head>
+<body>
+<div class="toolbar"><button onclick="window.print()">印刷する</button><button onclick="window.close()">閉じる</button></div>
+${pages}
+</body>
+</html>`);
+  printWindow.document.close();
+}
+
+function buildAccessPaperPage(paper, qrDataUrl) {
+  const notes = String(paper.notes || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const instructions = paper.instructions ||
+    "QRコードを読み取るか、記載されたURLをブラウザに入力し、ゲーム専用ページへアクセスしてください。";
+
+  const limit = Number(paper.validHours) === 0
+    ? "有効期限：なし"
+    : `有効期限：初回アクセスから${Number(paper.validHours)}時間`;
+
+  return `
+<section class="paper">
+  <header class="paper-head">
+    <p class="brand">RIDDLE STORY</p>
+    <h1>${escapeHtml(paper.title || "ゲームアクセス")}</h1>
+    <p class="paper-sub">ゲームアクセス用紙</p>
+  </header>
+
+  <div class="play-row">
+    <div class="label-box">ゲームプレイ方法</div>
+    <div class="instructions">${escapeHtml(instructions)}</div>
+  </div>
+
+  <div class="section-title">注意事項</div>
+  <ul class="notes">
+    ${(notes.length ? notes : ["この用紙はゲーム終了まで大切に保管してください。"]).map((line) => `<li>${escapeHtml(line)}</li>`).join("")}
+  </ul>
+
+  <div class="bottom">
+    <section class="check">
+      <h2>ゲームプレイ前の確認</h2>
+      <div class="check-row"><span class="box"></span><span>動作環境に合った端末・ブラウザを用意した</span></div>
+      <div class="check-row"><span class="box"></span><span>注意事項を読んだ</span></div>
+      <div class="check-row"><span class="box"></span><span>遊び方説明を読んだ</span></div>
+    </section>
+
+    <section class="qr-area">
+      <img src="${escapeAttr(qrDataUrl)}" alt="ゲームアクセスQRコード">
+      <div class="url">${escapeHtml(paper.gameUrl || "")}</div>
+      <div class="meta">${escapeHtml(limit)}</div>
+    </section>
+  </div>
+</section>`;
+}
+
+async function copyAccessText(text) {
+  try {
+    await navigator.clipboard.writeText(text || "");
+    showMessage("URLをコピーしました。");
+  } catch (err) {
+    showMessage("URLをコピーできませんでした。", "error");
+  }
+}
+
+function validHoursInputValue(value, fallback = 24) {
+  if (value === 0 || String(value).trim() === "0") return "0";
+  const num = Number(value);
+  if (Number.isInteger(num) && num >= 1) return String(num);
+  return String(fallback);
+}
+
+function validHoursText(value, fallback = 24) {
+  const normalized = validHoursInputValue(value, fallback);
+  return normalized === "0" ? "無期限" : `${normalized}時間`;
 }
 
 /***********************
