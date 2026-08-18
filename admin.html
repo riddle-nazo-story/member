@@ -439,6 +439,32 @@ URL・QRコードを第三者へ共有しないでください。
           <h3>発行済みゲームURL</h3>
           <p class="muted">表示名・gameId・ゲーム先URL・有効時間・状態を後から変更できます。</p>
           <div id="argGameLinks"></div>
+
+          <hr class="arg-divider" />
+          <p class="eyebrow">STAMP DISPLAY CONTROL</p>
+          <h3>スタンプ履歴を手動で表示</h3>
+          <p class="muted">このARGアカウントのMEMBER画面に表示するスタンプを、運営側から追加・編集・削除できます。</p>
+
+          <div class="arg-stamp-create-grid">
+            <label>スタンプ表示名
+              <input id="argStampTitle" type="text" placeholder="例：とあるホテルの秘密 参加スタンプ" />
+            </label>
+            <label>eventId（任意）
+              <input id="argStampEventId" type="text" placeholder="空欄でもOK" />
+            </label>
+            <label>ポイント
+              <input id="argStampPoint" type="number" min="0" max="999" step="1" value="1" />
+            </label>
+            <label>取得日時（任意）
+              <input id="argStampCreatedAt" type="datetime-local" />
+            </label>
+          </div>
+          <button id="addArgStampBtn" type="button">このアカウントにスタンプを表示</button>
+
+          <div class="arg-stamp-list-head">
+            <h3>表示中のスタンプ</h3>
+          </div>
+          <div id="argStampList"></div>
         </section>
       </section>
 
@@ -453,6 +479,16 @@ URL・QRコードを第三者へ共有しないでください。
             <div class="result-box">
               <strong>送信対象</strong>
               <p id="mailSubscriberCount" class="muted">確認中...</p>
+            </div>
+
+            <div class="result-box">
+              <strong>本日の残り送信可能数</strong>
+              <p id="mailQuotaCount" class="muted">確認中...</p>
+            </div>
+
+            <div class="result-box">
+              <strong>配信状況</strong>
+              <p id="campaignMailProgress" class="muted">新しい配信を開始できます。</p>
             </div>
 
             <label>
@@ -491,6 +527,6 @@ URL・QRコードを第三者へ共有しないでください。
     <div id="adminMessage" class="message hidden"></div>
   </main>
 
-  <script src="admin.js?v=game-access-a5-20260815-2"></script>
+  <script src="admin.js?v=arg-stamp-ticketlock-20260818-1"></script>
 </body>
 </html>
