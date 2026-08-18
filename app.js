@@ -15,10 +15,20 @@ function isArgAccount(user = currentUser) {
 function applyArgAccountRestrictions(user = currentUser) {
   const arg = isArgAccount(user);
 
-  // チケット購入/発行への導線
+  // 公演一覧・イベント詳細ページへの導線はARGアカウントでも表示する。
+  // 実際のチケット発行はAPI側とticket-event.js側で禁止します。
   document.querySelectorAll('a[href="ticket.html"], a[href^="ticket.html?"]').forEach((el) => {
-    el.classList.toggle("hidden", arg);
+    el.classList.remove("hidden");
   });
+
+  // メール配信設定は表示状態だけ確認できるようにし、ARGアカウントでは変更不可にする。
+  if ($("memberCampaignOptIn")) {
+    $("memberCampaignOptIn").disabled = arg;
+  }
+  if ($("saveCampaignOptInBtn")) {
+    $("saveCampaignOptInBtn").classList.toggle("hidden", arg);
+    $("saveCampaignOptInBtn").disabled = arg;
+  }
 
   // スタンプ獲得UIだけを隠す（取得済みスタンプ履歴は残す）
   const redeemButton = $("redeemStampBtn");
@@ -132,6 +142,8 @@ function renderEmailArea(user) {
   if ($("memberCampaignOptIn")) {
     $("memberCampaignOptIn").checked = !!user.campaignOptIn;
   }
+
+  applyArgAccountRestrictions(user);
 }
 
 async function verifyEmailCode() {
@@ -177,6 +189,10 @@ async function resendEmailCode() {
 }
 
 async function saveCampaignOptIn() {
+  if (isArgAccount()) {
+    return;
+  }
+
   try {
     const res = await api("updateCampaignOptIn", {
       token: getToken(),
@@ -1307,4 +1323,3 @@ function redirectAfterLoginIfNeeded() {
   location.href = returnTo;
   return true;
 }
-
