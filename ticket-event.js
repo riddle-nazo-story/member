@@ -10,6 +10,10 @@ let currentEvent = null;
 let confirmMode = null;
 let escapeCalendarState = null;
 
+function isArgAccount(user = currentUser) {
+  return String(user?.accountType || "normal") === "arg";
+}
+
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
@@ -122,6 +126,7 @@ function renderEvent(event) {
     $("eventTypeText").textContent = "FREE TICKET";
     $("freeArea").classList.remove("hidden");
     renderCountSelect(Number(event.maxFreeTickets || 1));
+    applyArgTicketRestriction();
     return;
   }
 
@@ -133,6 +138,35 @@ function renderEvent(event) {
     $("shopLink").classList.remove("hidden");
   } else {
     $("shopLink").classList.add("hidden");
+  }
+
+  applyArgTicketRestriction();
+}
+
+function applyArgTicketRestriction() {
+  if (!isArgAccount()) return;
+
+  $("confirmArea")?.classList.add("hidden");
+  $("resultArea")?.classList.add("hidden");
+
+  const controls = [
+    $("ticketCount"),
+    $("showConfirmBtn"),
+    $("paidCode"),
+    $("showPaidConfirmBtn"),
+    $("confirmIssueBtn"),
+  ].filter(Boolean);
+
+  controls.forEach((el) => {
+    el.disabled = true;
+  });
+
+  const area = currentEvent?.type === "free" ? $("freeArea") : $("paidArea");
+  if (area && !area.querySelector(".arg-ticket-readonly-note")) {
+    const note = document.createElement("div");
+    note.className = "message arg-ticket-readonly-note";
+    note.textContent = "このアカウントではチケットの発行・認証は利用できません。公演情報はそのまま確認できます。";
+    area.prepend(note);
   }
 }
 
@@ -161,6 +195,10 @@ function renderCountSelect(max) {
 
 function showFreeConfirm() {
   if (!requireLoginOrRedirect()) return;
+  if (isArgAccount()) {
+    showMessage("このアカウントではチケットを発行できません。", "error");
+    return;
+  }
 
   confirmMode = "free";
   const count = Number($("ticketCount").value || 1);
@@ -178,6 +216,10 @@ function showFreeConfirm() {
 
 function showPaidConfirm() {
   if (!requireLoginOrRedirect()) return;
+  if (isArgAccount()) {
+    showMessage("このアカウントではチケットを発行・認証できません。", "error");
+    return;
+  }
 
   const code = $("paidCode").value.trim();
 
@@ -206,6 +248,10 @@ function hideConfirm() {
 
 async function confirmAction() {
   if (!requireLoginOrRedirect()) return;
+  if (isArgAccount()) {
+    showMessage("このアカウントではチケットを発行・認証できません。", "error");
+    return;
+  }
 
   if (confirmMode === "free") {
     await issueFreeTickets();
@@ -215,6 +261,11 @@ async function confirmAction() {
 }
 
 async function issueFreeTickets() {
+  if (isArgAccount()) {
+    showMessage("このアカウントではチケットを発行できません。", "error");
+    return;
+  }
+
   try {
     const count = Number($("ticketCount").value || 1);
 
@@ -233,6 +284,11 @@ async function issueFreeTickets() {
 }
 
 async function verifyPaidCode() {
+  if (isArgAccount()) {
+    showMessage("このアカウントではチケットを発行・認証できません。", "error");
+    return;
+  }
+
   try {
     const code = $("paidCode").value.trim();
 
