@@ -2,6 +2,7 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbx68_hw9Zon-CVBIvyrGGnlL2uDGBKJOGkNvXtFx1bBtI1CcrAM2K1nHyn3-Xvq7UAczA/exec";
 
 const ADMIN_TOKEN_KEY = "rs_admin_token";
+const CAMPAIGN_MAIL_STATE_KEY = "riddle_story_campaign_mail_state_v2";
 
 const $ = (id) => document.getElementById(id);
 
@@ -83,6 +84,7 @@ async function initAdmin() {
   addClick("saveArgAccountBtn", saveArgAccount);
   addClick("deleteArgAccountBtn", deleteArgAccountAdmin);
   addClick("issueArgGameUrlBtn", issueArgGameUrl);
+  addClick("addArgStampBtn", addArgStamp);
 
   // ゲームアクセス用紙
   addClick("issueAccessPapersBtn", issueAccessPapers);
@@ -158,6 +160,8 @@ async function refreshAdmin() {
   await loadArgAccounts();
   await loadAccessPapers();
   await loadCampaignSubscribers();
+  await loadCampaignMailQuota();
+  syncCampaignMailProgress();
 }
 
 async function loadDashboard() {
@@ -948,7 +952,7 @@ function renderArgAccounts() {
   root.innerHTML = `<div class="arg-account-list">${argAccounts.map((u) => `
     <button type="button" class="arg-account-item ${u.userId === selectedArgUserId ? "active" : ""}" data-arg-user="${escapeAttr(u.userId)}">
       <span><strong>${escapeHtml(u.name)}</strong><small>${escapeHtml(u.email)}</small></span>
-      <span class="arg-account-meta">URL ${u.links?.length || 0}件</span>
+      <span class="arg-account-meta">URL ${u.links?.length || 0}件 / スタンプ ${u.stamps?.length || 0}件</span>
     </button>
   `).join("")}</div>`;
 
@@ -1002,6 +1006,7 @@ function openArgEditor(userId) {
   setText("argEditorTitle", `${user.name} / ARGアカウント編集`);
   removeHidden("argAccountEditor");
   renderArgGameLinks(user.links || []);
+  renderArgStamps(user.stamps || []);
   renderArgAccounts();
 }
 
@@ -1094,7 +1099,7 @@ function renderArgGameLinks(links) {
       <label>表示名<input data-field="title" value="${escapeAttr(link.title || "")}" /></label>
       <label>gameId<input data-field="gameId" value="${escapeAttr(link.gameId || "")}" /></label>
       <label>ゲーム先URL<input data-field="baseUrl" type="url" value="${escapeAttr(stripTokenFromUrl(link.gameUrl || ""))}" /></label>
-      <label>URL有効時間<input data-field="validHours" type="number" min="1" value="${escapeAttr(validHoursInputValue(link.validHours, 24))}" /></label>
+      <label>URL有効時間<input data-field="validHours" type="number" min="0" value="${escapeAttr(validHoursInputValue(link.validHours, 0))}" /><small>0 = 無期限</small></label>
       <label>状態
         <select data-field="status">
           ${["unused","active","cleared","expired","blocked"].map((s) => `<option value="${s}" ${link.gameStatus === s ? "selected" : ""}>${s}</option>`).join("")}
@@ -1162,6 +1167,128 @@ async function deleteArgGameLink(ticketId) {
       ticketId,
     });
     showMessage(res.message || "削除しました。");
+    await loadArgAccounts();
+  } catch (err) {
+    showMessage(err.message, "error");
+  }
+}
+
+
+async function addArgStamp() {
+  if (!selectedArgUserId) return;
+
+  try {
+    const createdLocal = getValue("argStampCreatedAt");
+    const res = await api("adminAddArgStamp", {
+      token: getAdminToken(),
+      userId: selectedArgUserId,
+      title: getValue("argStampTitle").trim(),
+      eventId: getValue("argStampEventId").trim(),
+      point: Number(getValue("argStampPoint", "1")),
+      createdAt: createdLocal ? new Date(createdLocal).toISOString() : "",
+    });
+
+    setValue("argStampTitle", "");
+    setValue("argStampEventId", "");
+    setValue("argStampPoint", "1");
+    setValue("argStampCreatedAt", "");
+
+    showMessage(res.message || "スタンプを表示しました。");
+    await loadArgAccounts();
+  } catch (err) {
+    showMessage(err.message, "error");
+  }
+}
+
+function renderArgStamps(stamps) {
+  const root = $("argStampList");
+  if (!root) return;
+
+  if (!stamps.length) {
+    root.innerHTML = `<p class="muted">このアカウントに表示中のスタンプはありません。</p>`;
+    return;
+  }
+
+  root.innerHTML = `<div class="arg-stamp-card-list">${stamps.map((stamp) => `
+    <article class="arg-stamp-card" data-arg-stamp="${escapeAttr(stamp.logId)}">
+      <div class="arg-link-head">
+        <strong>${escapeHtml(stamp.title || "スタンプ")}</strong>
+        <span class="code">${escapeHtml(String(stamp.point ?? 0))} pt</span>
+      </div>
+
+      <div class="arg-stamp-edit-grid">
+        <label>表示名
+          <input data-stamp-field="title" value="${escapeAttr(stamp.title || "")}" />
+        </label>
+
+        <label>eventId
+          <input data-stamp-field="eventId" value="${escapeAttr(stamp.eventId || "")}" />
+        </label>
+
+        <label>ポイント
+          <input data-stamp-field="point" type="number" min="0" max="999" step="1" value="${escapeAttr(String(stamp.point ?? 0))}" />
+        </label>
+
+        <label>取得日時
+          <input data-stamp-field="createdAt" type="datetime-local" value="${escapeAttr(isoToLocalInput(stamp.createdAt || ""))}" />
+        </label>
+      </div>
+
+      <div class="button-row">
+        <button type="button" class="small-btn" data-save-arg-stamp="${escapeAttr(stamp.logId)}">変更を保存</button>
+        <button type="button" class="small-btn danger-btn" data-delete-arg-stamp="${escapeAttr(stamp.logId)}">削除</button>
+      </div>
+    </article>
+  `).join("")}</div>`;
+
+  root.querySelectorAll("[data-save-arg-stamp]").forEach((btn) => {
+    btn.addEventListener("click", () => saveArgStamp(btn.dataset.saveArgStamp));
+  });
+
+  root.querySelectorAll("[data-delete-arg-stamp]").forEach((btn) => {
+    btn.addEventListener("click", () => deleteArgStamp(btn.dataset.deleteArgStamp));
+  });
+}
+
+async function saveArgStamp(logId) {
+  if (!selectedArgUserId) return;
+
+  const card = document.querySelector(`[data-arg-stamp="${CSS.escape(logId)}"]`);
+  if (!card) return;
+
+  const field = (name) => card.querySelector(`[data-stamp-field="${name}"]`)?.value || "";
+  const createdLocal = field("createdAt");
+
+  try {
+    const res = await api("adminUpdateArgStamp", {
+      token: getAdminToken(),
+      userId: selectedArgUserId,
+      logId,
+      title: field("title").trim(),
+      eventId: field("eventId").trim(),
+      point: Number(field("point")),
+      createdAt: createdLocal ? new Date(createdLocal).toISOString() : "",
+    });
+
+    showMessage(res.message || "スタンプ表示を更新しました。");
+    await loadArgAccounts();
+  } catch (err) {
+    showMessage(err.message, "error");
+  }
+}
+
+async function deleteArgStamp(logId) {
+  if (!selectedArgUserId) return;
+  if (!confirm("このスタンプをARGアカウントの表示から削除しますか？")) return;
+
+  try {
+    const res = await api("adminDeleteArgStamp", {
+      token: getAdminToken(),
+      userId: selectedArgUserId,
+      logId,
+    });
+
+    showMessage(res.message || "スタンプ表示を削除しました。");
     await loadArgAccounts();
   } catch (err) {
     showMessage(err.message, "error");
@@ -1766,14 +1893,90 @@ async function loadCampaignSubscribers() {
   }
 }
 
+async function loadCampaignMailQuota() {
+  try {
+    const res = await api("adminGetCampaignMailQuota", {
+      token: getAdminToken(),
+    });
+    setText("mailQuotaCount", (res.remainingDailyQuota ?? 0) + "人");
+  } catch (err) {
+    setText("mailQuotaCount", "取得できませんでした");
+  }
+}
+
+function readCampaignMailState() {
+  try {
+    return JSON.parse(localStorage.getItem(CAMPAIGN_MAIL_STATE_KEY) || "null");
+  } catch (err) {
+    return null;
+  }
+}
+
+function writeCampaignMailState(state) {
+  if (!state) {
+    localStorage.removeItem(CAMPAIGN_MAIL_STATE_KEY);
+    return;
+  }
+  localStorage.setItem(CAMPAIGN_MAIL_STATE_KEY, JSON.stringify(state));
+}
+
+function newCampaignId() {
+  if (window.crypto && crypto.randomUUID) {
+    return "campaign_" + crypto.randomUUID();
+  }
+  return "campaign_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+}
+
+function getOrCreateCampaignMailState(subject, body) {
+  const current = readCampaignMailState();
+
+  if (current && current.campaignId && current.subject === subject && current.body === body && !current.completed) {
+    return current;
+  }
+
+  const state = {
+    campaignId: newCampaignId(),
+    subject: subject,
+    body: body,
+    completed: false,
+    remainingCount: null,
+  };
+  writeCampaignMailState(state);
+  return state;
+}
+
+function syncCampaignMailProgress() {
+  const state = readCampaignMailState();
+  const progress = $("campaignMailProgress");
+  const button = $("sendCampaignMailBtn");
+
+  if (!progress || !button) return;
+
+  if (state && !state.completed && Number.isFinite(Number(state.remainingCount)) && Number(state.remainingCount) > 0) {
+    progress.textContent = `配信途中：残り ${Number(state.remainingCount)}人`;
+    button.textContent = "続きから送信する";
+  } else {
+    progress.textContent = "新しい配信を開始できます。";
+    button.textContent = "希望者に送信する";
+  }
+}
+
 function getCampaignMailPayload(testMode) {
-  return {
+  const subject = getValue("campaignSubject");
+  const body = getValue("campaignBody");
+  const payload = {
     token: getAdminToken(),
-    subject: getValue("campaignSubject"),
-    body: getValue("campaignBody"),
+    subject: subject,
+    body: body,
     testMode: !!testMode,
     testEmail: getValue("campaignTestEmail"),
   };
+
+  if (!testMode) {
+    payload.campaignId = getOrCreateCampaignMailState(subject, body).campaignId;
+  }
+
+  return payload;
 }
 
 async function sendCampaignTest() {
@@ -1792,9 +1995,9 @@ async function sendCampaignTest() {
 
     setDisabled("sendCampaignTestBtn", true);
 
-    await api("adminSendCampaignMail", payload);
-
-    showMessage("テストメールを送信しました。");
+    const res = await api("adminSendCampaignMail", payload);
+    showMessage(res.message || "テストメールを送信しました。");
+    await loadCampaignMailQuota();
   } catch (err) {
     showMessage(err.message, "error");
   } finally {
@@ -1804,17 +2007,37 @@ async function sendCampaignTest() {
 
 async function sendCampaignMail() {
   try {
-    const payload = getCampaignMailPayload(false);
+    const subject = getValue("campaignSubject");
+    const body = getValue("campaignBody");
 
-    if (!payload.subject || !payload.body) {
+    if (!subject || !body) {
       showMessage("件名と本文を入力してください。", "error");
       return;
     }
 
+    const current = readCampaignMailState();
+    if (current && !current.completed && current.campaignId &&
+        (current.subject !== subject || current.body !== body) &&
+        Number(current.remainingCount || 0) > 0) {
+      const startNew = confirm(
+        "前回のメール配信がまだ途中です。\n\n" +
+        `残り：${current.remainingCount}人\n\n` +
+        "件名または本文が変更されています。新しい配信として開始すると、前回すでに送信した会員にも新しいメールが送られます。\n\n新しい配信を開始しますか？"
+      );
+      if (!startNew) return;
+      writeCampaignMailState(null);
+    }
+
+    const payload = getCampaignMailPayload(false);
+    const state = readCampaignMailState();
+    const isResume = state && Number(state.remainingCount || 0) > 0;
+
     const ok = confirm(
-      "メール配信希望者全員に送信します。\n\n" +
-      "本送信前にテスト送信は確認しましたか？\n\n" +
-      "この操作は取り消せません。"
+      (isResume
+        ? `前回の続きから、未送信の残り${state.remainingCount}人へ配信します。`
+        : "メール配信希望者へ送信します。") +
+      "\n\nその日のApps Scriptの残り送信可能数まで自動で送信します。" +
+      "\n\n本送信前にテスト送信は確認しましたか？\n\nこの操作は取り消せません。"
     );
 
     if (!ok) return;
@@ -1824,12 +2047,28 @@ async function sendCampaignMail() {
 
     const res = await api("adminSendCampaignMail", payload);
 
+    if (res.completed) {
+      writeCampaignMailState(null);
+      setText("campaignMailProgress", `配信完了：${res.targetCount}人`);
+    } else {
+      writeCampaignMailState({
+        campaignId: res.campaignId || payload.campaignId,
+        subject: subject,
+        body: body,
+        completed: false,
+        remainingCount: Number(res.remainingCount || 0),
+      });
+      setText("campaignMailProgress", `配信途中：残り ${res.remainingCount}人`);
+    }
+
     if (res.error) {
       showMessage((res.message || "メールを送信しました。") + " 一部エラーがあります: " + res.error, "error");
     } else {
       showMessage(res.message || "メールを送信しました。");
     }
 
+    setText("mailQuotaCount", (res.quotaAfter ?? 0) + "人");
+    syncCampaignMailProgress();
     await loadDashboard();
     await loadCampaignSubscribers();
   } catch (err) {
